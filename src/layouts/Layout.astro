@@ -10,6 +10,9 @@ const {
   title = "Bogdan Perederii | Filmmaker & AV Technician", 
   description = "Portfolio of Bogdan Perederii – Videography, Location Sound, Editing, and Practical Arts."
 } = Astro.props;
+
+// Dynamická základná cesta (na GitHube /portfolio, na laptope /)
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 ---
 
 <!doctype html>
@@ -19,14 +22,13 @@ const {
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{title}</title>
     <meta name="description" content={description} />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/svg+xml" href={`${base}/favicon.svg`} />
   </head>
   <body class="min-h-screen flex flex-col font-sans">
-    <!-- Top Navigation Bar (Clean public view) -->
     <!-- Top Navigation Bar -->
     <header class="border-b border-neutral-900 bg-neutral-950/90 backdrop-blur sticky top-0 z-50">
       <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-        <a href="/" class="font-bold text-lg tracking-tight hover:text-amber-400 transition-colors">
+        <a href={`${base}/`} class="font-bold text-lg tracking-tight hover:text-amber-400 transition-colors">
           Bogdan Perederii
           <span class="text-xs font-mono text-neutral-500 font-normal ml-2">
             <span class="lang-en">/ AV Tech & Filmmaker</span>
@@ -35,19 +37,17 @@ const {
         </a>
 
         <nav class="flex items-center gap-5 text-sm font-medium text-neutral-300">
-          <a href="/" class="hover:text-white transition-colors">
+          <a href={`${base}/`} class="hover:text-white transition-colors">
             <span class="lang-en">Work</span>
             <span class="lang-sk hidden">Projekty</span>
           </a>
 
-          <!-- About & Contact link -->
-          <a href="/about" class="hover:text-white transition-colors">
+          <a href={`${base}/about`} class="hover:text-white transition-colors">
             <span class="lang-en">About</span>
             <span class="lang-sk hidden">O mne</span>
           </a>
 
-          <!-- Workshop Hub -->
-          <a href="/workshop" class="hover:text-amber-400 transition-colors flex items-center gap-1.5">
+          <a href={`${base}/workshop`} class="hover:text-amber-400 transition-colors flex items-center gap-1.5">
             <span class="text-amber-500 text-xs">⚡</span>
             <span class="lang-en">Workshop</span>
             <span class="lang-sk hidden">Dielňa</span>
@@ -57,14 +57,14 @@ const {
             Instagram ↗
           </a>
           
-          <!-- Unified Language Switcher -->
+          <!-- Unified In-Page Language Switcher -->
           <div class="flex items-center gap-1 font-mono text-xs border border-neutral-800 rounded px-2 py-1 bg-neutral-900/50">
             <button id="btn-en" class="lang-btn px-1.5 py-0.5 rounded bg-amber-500 text-black font-bold transition-all">EN</button>
             <span class="text-neutral-600">/</span>
             <button id="btn-sk" class="lang-btn px-1.5 py-0.5 rounded text-neutral-400 hover:text-white transition-all">SK</button>
           </div>
 
-          <a href="/about#contact" class="px-3 py-1.5 rounded-md bg-neutral-800 hover:bg-neutral-700 text-xs font-mono text-neutral-200 transition-colors">
+          <a href={`${base}/about#contact`} class="px-3 py-1.5 rounded-md bg-neutral-800 hover:bg-neutral-700 text-xs font-mono text-neutral-200 transition-colors">
             <span class="lang-en">Contact</span>
             <span class="lang-sk hidden">Kontakt</span>
           </a>
@@ -76,15 +76,13 @@ const {
       <slot />
     </main>
 
-    <!-- Footer with Hidden Admin/Studio Link at the very bottom -->
-    <!-- Footer with Hidden Admin Link (Visible ONLY on your laptop!) -->
+    <!-- Footer -->
     <footer class="border-t border-neutral-900 py-8 text-center text-xs text-neutral-500 font-mono">
       <div class="max-w-6xl mx-auto px-4 flex items-center justify-between">
         <p>© {new Date().getFullYear()} Bogdan Perederii • Košice / Trnava</p>
         
-        <!-- Only renders when running locally on localhost! Invisible on the live internet. -->
         {import.meta.env.DEV && (
-          <a href="/new" class="text-neutral-800 hover:text-amber-400 transition-colors text-[11px] flex items-center gap-1" title="Studio CMS (Local Only)">
+          <a href={`${base}/new`} class="text-neutral-800 hover:text-amber-400 transition-colors text-[11px] flex items-center gap-1" title="Studio CMS (Local Only)">
             <span>⚙</span> Studio
           </a>
         )}

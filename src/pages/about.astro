@@ -4,7 +4,10 @@ import { getCollection } from 'astro:content';
 
 const allProjects = await getCollection('projects');
 
-// Inteligentné zlučovanie: ignoruje rozdiely vo veľkých/malých písmenách (Stop-Motion vs Stop-motion)
+// Základná cesta pre GitHub Pages (na GitHube /portfolio, na laptope '')
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+
+// Inteligentné zlučovanie tagov (ignoruje rozdiely vo veľkých/malých písmenách)
 const skillMap: Record<string, { name: string; count: number }> = {};
 
 allProjects.forEach(p => {
@@ -30,7 +33,7 @@ const sortedSkills = Object.values(skillMap).sort((a, b) => {
 <Layout title="About & Contact | Bogdan Perederii">
   <div class="max-w-4xl mx-auto px-4 py-12">
     <!-- Top Breadcrumb -->
-    <a href="/" class="text-xs font-mono text-neutral-500 hover:text-amber-400 mb-8 inline-block">
+    <a href={`${base}/`} class="text-xs font-mono text-neutral-500 hover:text-amber-400 mb-8 inline-block">
       <span class="lang-en">← Back to Portfolio</span>
       <span class="lang-sk hidden">← Späť na portfólio</span>
     </a>
@@ -80,11 +83,10 @@ const sortedSkills = Object.values(skillMap).sort((a, b) => {
         </div>
       </div>
 
-      <!-- CV Download & Preview Buttons (Always points to /cv.pdf) -->
+      <!-- CV Download & Preview Buttons (Presmerované na /portfolio/cv.pdf) -->
       <div class="mt-8 flex flex-wrap items-center gap-4">
-        <!-- Direct Preview in new tab -->
         <a 
-          href="/cv.pdf" 
+          href={`${base}/cv.pdf`} 
           target="_blank" 
           rel="noopener noreferrer"
           class="px-5 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-mono font-bold text-xs tracking-wider transition-all flex items-center gap-2 shadow-lg hover:shadow-amber-500/20"
@@ -94,9 +96,8 @@ const sortedSkills = Object.values(skillMap).sort((a, b) => {
           <span class="lang-sk hidden">Náhľad životopisu (PDF) ↗</span>
         </a>
 
-        <!-- Direct Download button -->
         <a 
-          href="/cv.pdf" 
+          href={`${base}/cv.pdf`} 
           download="CV_Bogdan_Perederii.pdf"
           class="px-5 py-3 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-neutral-300 hover:text-white border border-neutral-800 font-mono text-xs transition-colors flex items-center gap-2"
         >
@@ -154,7 +155,7 @@ const sortedSkills = Object.values(skillMap).sort((a, b) => {
             <span class="lang-sk hidden">Technická disciplína na pľaci spojená s ručnou výrobou</span>
           </p>
         </div>
-        <a href="/workshop" class="text-xs font-mono text-neutral-500 hover:text-amber-400 transition-colors">
+        <a href={`${base}/workshop`} class="text-xs font-mono text-neutral-500 hover:text-amber-400 transition-colors">
           <span class="lang-en">Open Workshop Tools →</span>
           <span class="lang-sk hidden">Dielňa & Zdroje →</span>
         </a>
@@ -246,11 +247,11 @@ const sortedSkills = Object.values(skillMap).sort((a, b) => {
         </div>
       </div>
 
-      <!-- Interactive Skill Pills Grid -->
+      <!-- Interactive Skill Pills Grid (Odkazuje na /portfolio/?skill=...) -->
       <div class="flex flex-wrap gap-2.5">
         {sortedSkills.map((item) => (
           <a 
-            href={`/?skill=${encodeURIComponent(item.name)}`}
+            href={`${base}/?skill=${encodeURIComponent(item.name)}`}
             target="_blank"
             rel="noopener noreferrer"
             class="group inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-neutral-900/80 border border-neutral-800 hover:border-amber-500 hover:bg-neutral-850 text-neutral-300 hover:text-amber-400 font-mono text-xs transition-all shadow-sm"

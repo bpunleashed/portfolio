@@ -5,10 +5,11 @@ interface Props {
 
 const { project } = Astro.props;
 const data = project.data;
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 ---
 
 <a 
-  href={`/projects/${project.id}`} 
+  href={`${base}/projects/${project.id}`} 
   target="_blank" 
   rel="noopener noreferrer"
   class="project-card group block border border-neutral-900 rounded-xl overflow-hidden bg-neutral-950/80 hover:border-neutral-700 transition-all duration-300"
@@ -27,13 +28,11 @@ const data = project.data;
 
   <div class="p-6">
     <div class="mb-4">
-      <!-- Bilingual Card Title -->
       <h2 class="text-2xl font-bold mb-1.5 group-hover:text-amber-400 transition-colors">
         <span class="lang-en">{data.title_en || data.title}</span>
         <span class="lang-sk hidden">{data.title_sk || data.title}</span>
       </h2>
       
-      <!-- Bilingual Card Tagline -->
       <p class="text-sm text-neutral-400 leading-relaxed">
         <span class="lang-en">{data.tagline_en}</span>
         <span class="lang-sk hidden">{data.tagline_sk}</span>
