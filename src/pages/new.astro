@@ -1,0 +1,805 @@
+---
+// PRODUCTION LOCKOUT: If accessed on the live website, block and redirect!
+if (import.meta.env.PROD) {
+  return Astro.redirect('/');
+}
+
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Project Studio & CMS | Bogdan Perederii">
+  <div class="max-w-4xl mx-auto px-4 py-12">
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-8 border-b border-neutral-800 pb-4">
+      <div>
+        <h1 class="text-2xl md:text-3xl font-black tracking-tight">Project Studio & CMS</h1>
+        <p class="text-xs font-mono text-neutral-400 mt-1">Manage project metadata, bilingual copy, and vertical layout blocks.</p>
+      </div>
+      <a href="/" class="text-xs font-mono text-neutral-500 hover:text-amber-400 transition-colors">← Back to Site</a>
+    </div>
+
+    <!-- 1. TOP COMMAND BAR: SEARCH & EDIT vs. NEW PROJECT -->
+    <div class="mb-8 p-5 rounded-2xl border border-neutral-800 bg-neutral-900/60 shadow-xl space-y-4">
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
+        <!-- Search to Edit (8 cols) -->
+        <div class="md:col-span-8 relative">
+          <label for="project-search" class="block text-xs font-mono uppercase text-amber-400 font-bold tracking-wider mb-1.5">
+            Search & Edit Existing Project
+          </label>
+          <div class="relative">
+            <input 
+              type="text" 
+              id="project-search" 
+              autocomplete="off"
+              placeholder="🔍 Search by title, client, or skill (e.g. Majster, STVR, Fest)..." 
+              class="w-full bg-neutral-950 border border-neutral-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder-neutral-500 focus:border-amber-500 focus:outline-none font-sans"
+            />
+            <!-- Search Results Dropdown -->
+            <div id="search-results" class="hidden absolute top-full left-0 right-0 z-50 mt-1.5 max-h-64 overflow-y-auto bg-neutral-950 border border-neutral-750 rounded-xl shadow-2xl divide-y divide-neutral-850"></div>
+          </div>
+        </div>
+
+        <!-- Start Blank Project Button (4 cols) -->
+        <div class="md:col-span-4">
+          <button 
+            type="button" 
+            id="btn-new-project" 
+            class="w-full py-2.5 px-4 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-200 hover:text-white font-mono text-xs border border-neutral-700 hover:border-amber-500/50 transition-all flex items-center justify-center gap-2 cursor-pointer"
+          >
+            <span>⚡</span>
+            <span>+ New Blank Project</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Active Mode Indicator Banner -->
+      <div class="pt-3 border-t border-neutral-800/80 flex items-center justify-between text-xs font-mono">
+        <div class="flex items-center gap-2">
+          <span id="mode-dot" class="h-2 w-2 rounded-full bg-green-500"></span>
+          <span id="mode-text" class="text-neutral-300 font-medium">Mode: Creating New Blank Project</span>
+        </div>
+        <a id="preview-link" href="#" target="_blank" class="hidden text-amber-400 hover:underline flex items-center gap-1">
+          Open Live Project Page ↗
+        </a>
+      </div>
+    </div>
+
+    <!-- PROJECT EDIT FORM -->
+    <form id="project-form" class="space-y-8">
+      <!-- Hidden input to store locked slug in edit mode -->
+      <input type="hidden" id="editing-slug" value="" />
+
+      <!-- TEMPLATE PRESET SELECTOR -->
+      <div class="p-5 rounded-2xl border border-neutral-800 bg-neutral-900/40 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div>
+          <label for="template" class="block text-xs font-mono text-amber-400 uppercase font-bold tracking-wider mb-1">
+            Preset Template
+          </label>
+          <p class="text-[11px] font-mono text-neutral-500">
+            Pre-arranges layout blocks for your chosen medium. You can still re-order them individually below.
+          </p>
+        </div>
+        <select id="template" class="w-full md:w-auto bg-neutral-900 border border-neutral-800 rounded-xl p-3 text-neutral-100 font-mono text-xs cursor-pointer focus:border-amber-500 focus:outline-none">
+          <option value="animated-short">🎬 Animated Short / Film (Film + Laurels + Teaser + BTS)</option>
+          <option value="photoreport">📸 Photo Report / Event (Hero Photo + Stills Gallery + Venue)</option>
+          <option value="camerawork">🎥 Camera Work (Master Video + Gear Package + Rigging)</option>
+        </select>
+      </div>
+
+      <!-- PINNED BASE METADATA -->
+      <div class="p-6 rounded-2xl border border-neutral-850 bg-neutral-900/30 space-y-5">
+        <div class="flex items-center justify-between pb-3 border-b border-neutral-800">
+          <h2 class="text-xs font-mono uppercase tracking-widest text-amber-400 font-bold flex items-center gap-2">
+            <span>📌</span> Base Information
+          </h2>
+          <span class="text-[10px] font-mono text-neutral-500">Fixed at top of case study</span>
+        </div>
+
+        <!-- Titles & Slug -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label class="block text-xs font-mono text-neutral-400 mb-1">Title (English) *</label>
+            <input type="text" id="title_en" required placeholder="e.g. The Master" class="w-full bg-neutral-900 border border-neutral-800 rounded-lg p-2.5 text-white focus:border-amber-500 focus:outline-none" />
+          </div>
+          <div>
+            <label class="block text-xs font-mono text-neutral-400 mb-1">Title (Slovak) *</label>
+            <input type="text" id="title_sk" required placeholder="e.g. Majster" class="w-full bg-neutral-900 border border-neutral-800 rounded-lg p-2.5 text-white focus:border-amber-500 focus:outline-none" />
+          </div>
+          <div>
+            <label class="block text-xs font-mono text-neutral-400 mb-1">URL Slug (Fixed on Edit)</label>
+            <input type="text" id="slug" placeholder="e.g. master (auto-generated)" class="w-full bg-neutral-900 border border-neutral-800 rounded-lg p-2.5 text-white focus:border-amber-500 focus:outline-none font-mono text-xs" />
+          </div>
+        </div>
+
+        <!-- Date, Runtime, Location -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label class="block text-xs font-mono text-neutral-400 mb-1">Date / Timeline *</label>
+            <input type="text" id="date" required placeholder="e.g. 2024 - 2025" class="w-full bg-neutral-900 border border-neutral-800 rounded-lg p-2.5 text-white focus:border-amber-500 focus:outline-none" />
+          </div>
+          <div>
+            <label class="block text-xs font-mono text-neutral-400 mb-1">Runtime / Duration</label>
+            <input type="text" id="duration" placeholder="e.g. 3:20 min" class="w-full bg-neutral-900 border border-neutral-800 rounded-lg p-2.5 text-white focus:border-amber-500 focus:outline-none font-mono text-xs" />
+          </div>
+          <div>
+            <label class="block text-xs font-mono text-neutral-400 mb-1">Location</label>
+            <input type="text" id="place" placeholder="e.g. Košice, Slovakia" class="w-full bg-neutral-900 border border-neutral-800 rounded-lg p-2.5 text-white focus:border-amber-500 focus:outline-none" />
+          </div>
+        </div>
+
+        <!-- Venue & Client -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-mono text-neutral-400 mb-1">Venue (Optional)</label>
+            <input type="text" id="venue" placeholder="e.g. Fest Anča / Stanica Žilina" class="w-full bg-neutral-900 border border-neutral-800 rounded-lg p-2.5 text-white focus:border-amber-500 focus:outline-none" />
+          </div>
+          <div>
+            <label class="block text-xs font-mono text-neutral-400 mb-1">Client / Production</label>
+            <input type="text" id="client" placeholder="e.g. SŠUP filmová / Independent" class="w-full bg-neutral-900 border border-neutral-800 rounded-lg p-2.5 text-white focus:border-amber-500 focus:outline-none" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-mono text-amber-400 mb-1 uppercase font-bold">Skills / Tags (Comma separated) *</label>
+          <input type="text" id="skills" required placeholder="Stop-Motion, Réžia, Strih videa, Zvukový dizajn" class="w-full bg-neutral-900 border border-neutral-800 rounded-lg p-2.5 text-amber-400 font-mono text-xs focus:border-amber-500 focus:outline-none" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-mono text-neutral-400 mb-1">Collaborators (Comma separated)</label>
+          <input type="text" id="collaborators" placeholder="Autor: Bogdan Perederii, Dabing: Natália Kocsisová" class="w-full bg-neutral-900 border border-neutral-800 rounded-lg p-2.5 text-white focus:border-amber-500 focus:outline-none font-mono text-xs" />
+        </div>
+
+        <!-- Taglines -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+          <div>
+            <label class="block text-xs font-mono text-neutral-400 mb-1">Tagline (English)</label>
+            <textarea id="tagline_en" rows="3" placeholder="Short description in English" class="w-full bg-neutral-900 border border-neutral-800 rounded-lg p-2.5 text-white focus:border-amber-500 focus:outline-none leading-relaxed"></textarea>
+          </div>
+          <div>
+            <label class="block text-xs font-mono text-neutral-400 mb-1">Tagline (Slovak)</label>
+            <textarea id="tagline_sk" rows="3" placeholder="Krátky popis v slovenčine" class="w-full bg-neutral-900 border border-neutral-800 rounded-lg p-2.5 text-white focus:border-amber-500 focus:outline-none leading-relaxed"></textarea>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-mono text-neutral-400 mb-1">Card Cover Thumbnail URL (Direct image link) *</label>
+          <input type="text" id="coverImage" required placeholder="https://i.ibb.co/.../cover.webp or /images/..." class="w-full bg-neutral-900 border border-neutral-800 rounded-lg p-2.5 text-white focus:border-amber-500 focus:outline-none font-mono text-xs" />
+        </div>
+      </div>
+
+      <!-- RE-ORDERABLE SECTION CARDS -->
+      <div class="flex items-center justify-between pt-4 border-t border-neutral-800">
+        <div>
+          <h2 class="text-xs font-mono uppercase tracking-widest text-neutral-300 font-bold">
+            Layout Blocks & Content
+          </h2>
+          <p class="text-[11px] font-mono text-neutral-500">Arrange block sequence using ▲ / ▼ buttons</p>
+        </div>
+      </div>
+
+      <div id="reorderable-sections" class="space-y-6">
+        
+        <!-- CARD 1: MASTER HERO MEDIA -->
+        <div id="sec-hero" data-block-id="hero" class="block-card p-6 rounded-2xl border border-neutral-800 bg-neutral-900/30 space-y-4">
+          <div class="flex items-center justify-between pb-3 border-b border-neutral-800 bg-neutral-900/60 p-3 rounded-xl">
+            <div class="flex items-center gap-2.5">
+              <span class="block-badge text-xs font-mono px-2 py-0.5 rounded bg-neutral-800 text-amber-400 font-bold">#</span>
+              <span class="text-base">🎬</span>
+              <h3 class="text-xs font-mono uppercase tracking-wider text-neutral-200 font-bold">Master Media (Full Film / Hero Photo)</h3>
+            </div>
+            <div class="flex items-center gap-1">
+              <button type="button" class="btn-up px-3 py-1 text-xs font-mono rounded bg-neutral-800 hover:bg-neutral-700 text-neutral-300 transition-colors">▲ Up</button>
+              <button type="button" class="btn-down px-3 py-1 text-xs font-mono rounded bg-neutral-800 hover:bg-neutral-700 text-neutral-300 transition-colors">▼ Down</button>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="md:col-span-1">
+              <label class="block text-xs font-mono text-neutral-400 mb-1">Type</label>
+              <select id="heroType" class="w-full bg-neutral-900 border border-neutral-800 rounded-lg p-2.5 text-white focus:border-amber-500 focus:outline-none font-mono text-xs">
+                <option value="video">Video (YouTube/Vimeo)</option>
+                <option value="photo">Photo (Banner)</option>
+              </select>
+            </div>
+            <div class="md:col-span-3">
+              <label class="block text-xs font-mono text-neutral-400 mb-1">Media URL</label>
+              <input type="text" id="heroUrl" placeholder="https://www.youtube.com/watch?v=... or direct image link" class="w-full bg-neutral-900 border border-neutral-800 rounded-lg p-2.5 text-white focus:border-amber-500 focus:outline-none font-mono text-xs" />
+            </div>
+          </div>
+        </div>
+
+        <!-- CARD 2: BILINGUAL STORY / STATEMENT -->
+        <div id="sec-story" data-block-id="story" class="block-card p-6 rounded-2xl border border-neutral-800 bg-neutral-900/30 space-y-4">
+          <div class="flex items-center justify-between pb-3 border-b border-neutral-800 bg-neutral-900/60 p-3 rounded-xl">
+            <div class="flex items-center gap-2.5">
+              <span class="block-badge text-xs font-mono px-2 py-0.5 rounded bg-neutral-800 text-amber-400 font-bold">#</span>
+              <span class="text-base">📝</span>
+              <h3 class="text-xs font-mono uppercase tracking-wider text-neutral-200 font-bold">Story & Statement (Bilingual)</h3>
+            </div>
+            <div class="flex items-center gap-1">
+              <button type="button" class="btn-up px-3 py-1 text-xs font-mono rounded bg-neutral-800 hover:bg-neutral-700 text-neutral-300 transition-colors">▲ Up</button>
+              <button type="button" class="btn-down px-3 py-1 text-xs font-mono rounded bg-neutral-800 hover:bg-neutral-700 text-neutral-300 transition-colors">▼ Down</button>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-mono text-neutral-400 mb-1">Story / Director's Statement (English)</label>
+              <textarea id="story_en" rows="8" placeholder="Story, background, and artistic process in English..." class="w-full bg-neutral-900 border border-neutral-800 rounded-lg p-3.5 text-white focus:border-amber-500 focus:outline-none font-sans text-sm leading-relaxed resize-y min-h-[160px]"></textarea>
+            </div>
+            <div>
+              <label class="block text-xs font-mono text-neutral-400 mb-1">Story / Director's Statement (Slovak)</label>
+              <textarea id="story_sk" rows="8" placeholder="Príbeh, pozadie a tvorivý proces v slovenčine..." class="w-full bg-neutral-900 border border-neutral-800 rounded-lg p-3.5 text-white focus:border-amber-500 focus:outline-none font-sans text-sm leading-relaxed resize-y min-h-[160px]"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- CARD 3: DEDICATED AWARDS & LAURELS BUILDER -->
+        <div id="sec-awards" data-block-id="awards" class="block-card p-6 rounded-2xl border border-neutral-800 bg-neutral-900/30 space-y-5">
+          <div class="flex items-center justify-between pb-3 border-b border-neutral-800 bg-neutral-900/60 p-3 rounded-xl">
+            <div class="flex items-center gap-2.5">
+              <span class="block-badge text-xs font-mono px-2 py-0.5 rounded bg-neutral-800 text-amber-400 font-bold">#</span>
+              <span class="text-base">🌿</span>
+              <h3 class="text-xs font-mono uppercase tracking-wider text-neutral-200 font-bold">Awards & Festival Selections</h3>
+            </div>
+            <div class="flex items-center gap-1">
+              <button type="button" class="btn-up px-3 py-1 text-xs font-mono rounded bg-neutral-800 hover:bg-neutral-700 text-neutral-300 transition-colors">▲ Up</button>
+              <button type="button" class="btn-down px-3 py-1 text-xs font-mono rounded bg-neutral-800 hover:bg-neutral-700 text-neutral-300 transition-colors">▼ Down</button>
+            </div>
+          </div>
+
+          <!-- DYNAMIC LIST OF AWARD CARDS -->
+          <div id="awards-list" class="space-y-4">
+            <!-- Individual award cards injected here -->
+          </div>
+
+          <button 
+            type="button" 
+            id="btn-add-award" 
+            class="w-full py-3 rounded-xl border border-dashed border-neutral-700 hover:border-amber-500 bg-neutral-900/40 hover:bg-neutral-900 text-neutral-300 hover:text-amber-400 font-mono text-xs transition-all flex items-center justify-center gap-2 cursor-pointer"
+          >
+            <span>+</span>
+            <span>Add Another Award / Selection</span>
+          </button>
+        </div>
+
+        <!-- CARD 4: BILINGUAL TEASER TRAILER -->
+        <div id="sec-teaser" data-block-id="teaser" class="block-card p-6 rounded-2xl border border-neutral-800 bg-neutral-900/30 space-y-4">
+          <div class="flex items-center justify-between pb-3 border-b border-neutral-800 bg-neutral-900/60 p-3 rounded-xl">
+            <div class="flex items-center gap-2.5">
+              <span class="block-badge text-xs font-mono px-2 py-0.5 rounded bg-neutral-800 text-amber-400 font-bold">#</span>
+              <span class="text-base">▶</span>
+              <h3 class="text-xs font-mono uppercase tracking-wider text-neutral-200 font-bold">Festival Screening Teaser</h3>
+            </div>
+            <div class="flex items-center gap-1">
+              <button type="button" class="btn-up px-3 py-1 text-xs font-mono rounded bg-neutral-800 hover:bg-neutral-700 text-neutral-300 transition-colors">▲ Up</button>
+              <button type="button" class="btn-down px-3 py-1 text-xs font-mono rounded bg-neutral-800 hover:bg-neutral-700 text-neutral-300 transition-colors">▼ Down</button>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label class="block text-xs font-mono text-neutral-400 mb-1">Teaser Title (English)</label>
+              <input type="text" id="teaserTitle_en" placeholder="e.g. Screening Teaser: Master Returns" class="w-full bg-neutral-900 border border-neutral-800 rounded-lg p-2.5 text-white focus:border-amber-500 focus:outline-none font-mono text-xs" />
+            </div>
+            <div>
+              <label class="block text-xs font-mono text-neutral-400 mb-1">Teaser Title (Slovak)</label>
+              <input type="text" id="teaserTitle_sk" placeholder="e.g. Festivalový teaser: Majster sa vráti" class="w-full bg-neutral-900 border border-neutral-800 rounded-lg p-2.5 text-white focus:border-amber-500 focus:outline-none font-mono text-xs" />
+            </div>
+            <div>
+              <label class="block text-xs font-mono text-neutral-400 mb-1">Teaser Video URL</label>
+              <input type="text" id="teaserUrl" placeholder="https://www.youtube.com/watch?v=..." class="w-full bg-neutral-900 border border-neutral-800 rounded-lg p-2.5 text-white focus:border-amber-500 focus:outline-none font-mono text-xs" />
+            </div>
+          </div>
+        </div>
+
+        <!-- CARD 5: BILINGUAL BTS & GEAR -->
+        <div id="sec-bts" data-block-id="bts" class="block-card p-6 rounded-2xl border border-neutral-800 bg-neutral-900/30 space-y-4">
+          <div class="flex items-center justify-between pb-3 border-b border-neutral-800 bg-neutral-900/60 p-3 rounded-xl">
+            <div class="flex items-center gap-2.5">
+              <span class="block-badge text-xs font-mono px-2 py-0.5 rounded bg-neutral-800 text-amber-400 font-bold">#</span>
+              <span class="text-base">⚙️</span>
+              <h3 class="text-xs font-mono uppercase tracking-wider text-neutral-200 font-bold">Behind The Scenes & Equipment</h3>
+            </div>
+            <div class="flex items-center gap-1">
+              <button type="button" class="btn-up px-3 py-1 text-xs font-mono rounded bg-neutral-800 hover:bg-neutral-700 text-neutral-300 transition-colors">▲ Up</button>
+              <button type="button" class="btn-down px-3 py-1 text-xs font-mono rounded bg-neutral-800 hover:bg-neutral-700 text-neutral-300 transition-colors">▼ Down</button>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-mono text-neutral-400 mb-1">Complete Gear Package (Comma separated)</label>
+            <input type="text" id="gearList" placeholder="Sony NEX-5T, TTArtisan 35mm f/1.4, Røde VideoMic Pro, Dragonframe" class="w-full bg-neutral-900 border border-neutral-800 rounded-lg p-2.5 text-white focus:border-amber-500 focus:outline-none font-mono text-xs mb-3" />
+          </div>
+
+          <div class="p-3 rounded-lg bg-neutral-950 border border-neutral-800 text-neutral-400 text-xs font-mono">
+            <strong>Format guide:</strong> 1 BTS item per line separated by pipe (<code class="text-amber-400">|</code>):<br />
+            <span class="text-neutral-500">MediaURL | Note (EN) | Note (SK) | GearUsed (optional)</span>
+          </div>
+
+          <textarea id="btsText" rows="5" placeholder="https://i.ibb.co/.../bts.webp | Crafting wooden armature joints | Výroba kĺbov bábky | Sony NEX-5T + 35mm" class="w-full bg-neutral-900 border border-neutral-800 rounded-lg p-3 text-white focus:border-amber-500 focus:outline-none font-mono text-xs leading-relaxed min-h-[140px]"></textarea>
+        </div>
+
+        <!-- CARD 6: GALLERY / STILLS -->
+        <div id="sec-gallery" data-block-id="gallery" class="block-card p-6 rounded-2xl border border-neutral-800 bg-neutral-900/30 space-y-4">
+          <div class="flex items-center justify-between pb-3 border-b border-neutral-800 bg-neutral-900/60 p-3 rounded-xl">
+            <div class="flex items-center gap-2.5">
+              <span class="block-badge text-xs font-mono px-2 py-0.5 rounded bg-neutral-800 text-amber-400 font-bold">#</span>
+              <span class="text-base">🖼️</span>
+              <h3 class="text-xs font-mono uppercase tracking-wider text-neutral-200 font-bold">Photo Gallery Stills</h3>
+            </div>
+            <div class="flex items-center gap-1">
+              <button type="button" class="btn-up px-3 py-1 text-xs font-mono rounded bg-neutral-800 hover:bg-neutral-700 text-neutral-300 transition-colors">▲ Up</button>
+              <button type="button" class="btn-down px-3 py-1 text-xs font-mono rounded bg-neutral-800 hover:bg-neutral-700 text-neutral-300 transition-colors">▼ Down</button>
+            </div>
+          </div>
+
+          <p class="text-[11px] font-mono text-neutral-500">Paste direct image links (1 per line):</p>
+          <textarea id="galleryText" rows="5" placeholder="https://i.ibb.co/.../still-1.webp&#10;https://i.ibb.co/.../still-2.webp" class="w-full bg-neutral-900 border border-neutral-800 rounded-lg p-3 text-white focus:border-amber-500 focus:outline-none font-mono text-xs leading-relaxed min-h-[140px]"></textarea>
+        </div>
+
+      </div>
+
+      <!-- BOTTOM SAVE / SUBMIT DOCK -->
+      <div class="pt-8 border-t border-neutral-800 sticky bottom-4 z-40">
+        <div class="p-4 rounded-2xl bg-neutral-950/95 backdrop-blur border border-neutral-800 shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div class="text-xs font-mono">
+            <p id="status-msg" class="text-neutral-400 font-medium">Ready to save</p>
+          </div>
+          <button 
+            type="submit" 
+            id="submit-btn" 
+            class="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-amber-500 text-black font-bold font-mono tracking-wider hover:bg-amber-400 transition-all shadow-lg hover:shadow-amber-500/20 cursor-pointer text-sm"
+          >
+            ⚡ Save Project File (.mdx)
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</Layout>
+
+<script is:inline>
+  const container = document.getElementById('reorderable-sections');
+  const searchInput = document.getElementById('project-search');
+  const searchResults = document.getElementById('search-results');
+  const btnNewProject = document.getElementById('btn-new-project');
+  const modeDot = document.getElementById('mode-dot');
+  const modeText = document.getElementById('mode-text');
+  const previewLink = document.getElementById('preview-link');
+  const editingSlugInput = document.getElementById('editing-slug');
+  const submitBtn = document.getElementById('submit-btn');
+  const statusMsg = document.getElementById('status-msg');
+  const awardsList = document.getElementById('awards-list');
+  const btnAddAward = document.getElementById('btn-add-award');
+
+  let allProjects = [];
+
+  // 1. Dynamic Award Card Builder
+  function createAwardCard(data = {}) {
+    const card = document.createElement('div');
+    card.className = 'award-card p-4 rounded-xl border border-neutral-800 bg-neutral-950 space-y-3 relative';
+
+    const isSelection = (data.award_en || '').toLowerCase().includes('selection') || 
+                        (data.award_sk || '').toLowerCase().includes('výber');
+
+    card.innerHTML = `
+      <div class="flex items-center justify-between pb-2 border-b border-neutral-850">
+        <div class="inline-flex p-1 rounded-lg bg-neutral-900 border border-neutral-800 text-xs font-mono">
+          <button type="button" class="btn-type-selection px-3 py-1 rounded transition-colors ${isSelection ? 'bg-amber-500 text-black font-bold' : 'text-neutral-400 hover:text-white'}">
+            🌿 Official Selection
+          </button>
+          <button type="button" class="btn-type-award px-3 py-1 rounded transition-colors ${!isSelection ? 'bg-amber-500 text-black font-bold' : 'text-neutral-400 hover:text-white'}">
+            🏆 Award / Prize
+          </button>
+        </div>
+        <button type="button" class="btn-delete-award text-neutral-500 hover:text-red-400 text-xs font-mono px-2 py-1 transition-colors">
+          ✕ Remove
+        </button>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div class="md:col-span-2">
+          <label class="block text-[11px] font-mono text-neutral-400 mb-1">Festival / Event Name *</label>
+          <input type="text" class="award-festival w-full bg-neutral-900 border border-neutral-800 rounded-lg p-2 text-white focus:border-amber-500 focus:outline-none font-sans text-xs" placeholder="e.g. Fest Anča or Cineama Slovakia" value="${data.festival || ''}" />
+        </div>
+        <div>
+          <label class="block text-[11px] font-mono text-neutral-400 mb-1">Year *</label>
+          <input type="text" class="award-year w-full bg-neutral-900 border border-neutral-800 rounded-lg p-2 text-white focus:border-amber-500 focus:outline-none font-mono text-xs" placeholder="e.g. 2025" value="${data.year || '2025'}" />
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div>
+          <label class="block text-[11px] font-mono text-neutral-400 mb-1">Category / Explanation (English) *</label>
+          <input type="text" class="award-en w-full bg-neutral-900 border border-neutral-800 rounded-lg p-2 text-white focus:border-amber-500 focus:outline-none font-sans text-xs" placeholder="e.g. Official Selection – Slovak Competition" value="${data.award_en || data.award || ''}" />
+        </div>
+        <div>
+          <label class="block text-[11px] font-mono text-neutral-400 mb-1">Category / Explanation (Slovak) *</label>
+          <input type="text" class="award-sk w-full bg-neutral-900 border border-neutral-800 rounded-lg p-2 text-white focus:border-amber-500 focus:outline-none font-sans text-xs" placeholder="e.g. Oficiálny výber – Slovenská súťaž" value="${data.award_sk || data.award || ''}" />
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-[11px] font-mono text-neutral-400 mb-1">Picture Link (Laurel PNG or Diploma URL - Optional)</label>
+        <input type="text" class="award-image w-full bg-neutral-900 border border-neutral-800 rounded-lg p-2 text-white focus:border-amber-500 focus:outline-none font-mono text-xs" placeholder="https://i.ibb.co/.../laurel.webp or /images/laurels/..." value="${data.laurelImage || ''}" />
+      </div>
+    `;
+
+    const btnSelection = card.querySelector('.btn-type-selection');
+    const btnAward = card.querySelector('.btn-type-award');
+    const inputEn = card.querySelector('.award-en');
+    const inputSk = card.querySelector('.award-sk');
+
+    btnSelection.addEventListener('click', () => {
+      btnSelection.className = 'btn-type-selection px-3 py-1 rounded transition-colors bg-amber-500 text-black font-bold';
+      btnAward.className = 'btn-type-award px-3 py-1 rounded transition-colors text-neutral-400 hover:text-white';
+      if (!inputEn.value) inputEn.value = "Official Selection";
+      if (!inputSk.value) inputSk.value = "Oficiálny výber";
+    });
+
+    btnAward.addEventListener('click', () => {
+      btnAward.className = 'btn-type-award px-3 py-1 rounded transition-colors bg-amber-500 text-black font-bold';
+      btnSelection.className = 'btn-type-selection px-3 py-1 rounded transition-colors text-neutral-400 hover:text-white';
+      if (!inputEn.value || inputEn.value === "Official Selection") inputEn.value = "Award in Category";
+      if (!inputSk.value || inputSk.value === "Oficiálny výber") inputSk.value = "Cena v kategórii";
+    });
+
+    card.querySelector('.btn-delete-award').addEventListener('click', () => {
+      card.remove();
+    });
+
+    awardsList.appendChild(card);
+  }
+
+  btnAddAward?.addEventListener('click', () => createAwardCard());
+
+  function getAwardsData() {
+    const cards = Array.from(document.querySelectorAll('.award-card'));
+    return cards.map(card => ({
+      festival: card.querySelector('.award-festival').value.trim(),
+      year: card.querySelector('.award-year').value.trim(),
+      award_en: card.querySelector('.award-en').value.trim(),
+      award_sk: card.querySelector('.award-sk').value.trim(),
+      laurelImage: card.querySelector('.award-image').value.trim(),
+    })).filter(a => a.festival && (a.award_en || a.award_sk));
+  }
+
+  // 2. Fetch Projects & Auto-Restore Active Session
+  async function loadProjects() {
+    try {
+      const res = await fetch('/api/projects.json');
+      allProjects = await res.json();
+
+      // Check if URL or session has an active project to restore!
+      const urlParams = new URLSearchParams(window.location.search);
+      const activeSlug = urlParams.get('edit') || sessionStorage.getItem('active_edit_slug');
+      if (activeSlug) {
+        loadProjectIntoForm(activeSlug);
+      }
+    } catch (e) {
+      console.warn("Could not load project catalog:", e);
+    }
+  }
+
+  loadProjects();
+
+  // Search filter
+  searchInput?.addEventListener('input', () => {
+    const q = searchInput.value.trim().toLowerCase();
+    if (!q) {
+      searchResults.classList.add('hidden');
+      return;
+    }
+
+    const matches = allProjects.filter(p => {
+      const titleEn = (p.data.title_en || p.data.title || '').toLowerCase();
+      const titleSk = (p.data.title_sk || '').toLowerCase();
+      const skills = (p.data.skills || []).join(' ').toLowerCase();
+      const client = (p.data.client || '').toLowerCase();
+      return titleEn.includes(q) || titleSk.includes(q) || skills.includes(q) || client.includes(q);
+    });
+
+    if (matches.length === 0) {
+      searchResults.innerHTML = `<div class="p-3 text-xs font-mono text-neutral-500 text-center">No projects match "${q}"</div>`;
+      searchResults.classList.remove('hidden');
+      return;
+    }
+
+    searchResults.innerHTML = matches.map(p => `
+      <div class="search-item p-3 hover:bg-neutral-850 cursor-pointer flex items-center justify-between transition-colors" data-id="${p.id}">
+        <div>
+          <strong class="text-sm text-white block">${p.data.title_sk || p.data.title_en || p.id}</strong>
+          <span class="text-[11px] font-mono text-neutral-400">${p.data.date} • ${(p.data.skills || []).slice(0, 2).join(', ')}</span>
+        </div>
+        <span class="text-xs font-mono text-amber-500">Edit →</span>
+      </div>
+    `).join('');
+    searchResults.classList.remove('hidden');
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+      searchResults.classList.add('hidden');
+    }
+  });
+
+  searchResults?.addEventListener('click', (e) => {
+    const item = e.target.closest('.search-item');
+    if (!item) return;
+    const selectedId = item.getAttribute('data-id');
+    loadProjectIntoForm(selectedId);
+    searchResults.classList.add('hidden');
+    searchInput.value = '';
+  });
+
+  // 3. Load Project into Form & Persist in URL / Session
+  function loadProjectIntoForm(id) {
+    const p = allProjects.find(item => item.id === id);
+    if (!p) return;
+
+    // PERSISTENCE: Save to Session & update URL so reloads don't wipe the form
+    sessionStorage.setItem('active_edit_slug', p.id);
+    history.replaceState(null, '', `/new?edit=${p.id}`);
+
+    editingSlugInput.value = p.id;
+    modeDot.className = "h-2 w-2 rounded-full bg-amber-400 animate-pulse";
+    modeText.innerText = `Mode: Editing ${p.id}.mdx`;
+    previewLink.href = `/projects/${p.id}`;
+    previewLink.classList.remove('hidden');
+    submitBtn.innerText = `💾 Update & Save ${p.id}.mdx`;
+
+    const d = p.data;
+    document.getElementById('title_en').value = d.title_en || d.title || '';
+    document.getElementById('title_sk').value = d.title_sk || d.title || '';
+    
+    const slugInput = document.getElementById('slug');
+    slugInput.value = p.id;
+    slugInput.disabled = true;
+
+    document.getElementById('date').value = d.date || '';
+    document.getElementById('duration').value = d.duration || '';
+    document.getElementById('place').value = d.place || '';
+    document.getElementById('venue').value = d.venue || '';
+    document.getElementById('client').value = d.client || '';
+    document.getElementById('skills').value = (d.skills || []).join(', ');
+    document.getElementById('collaborators').value = (d.collaborators || []).join(', ');
+    document.getElementById('tagline_en').value = d.tagline_en || '';
+    document.getElementById('tagline_sk').value = d.tagline_sk || '';
+    document.getElementById('coverImage').value = d.coverImage || '';
+    document.getElementById('heroType').value = d.heroMedia?.type || 'video';
+    document.getElementById('heroUrl').value = d.heroMedia?.url || '';
+    document.getElementById('teaserTitle_en').value = d.teaserVideo?.title_en || '';
+    document.getElementById('teaserTitle_sk').value = d.teaserVideo?.title_sk || '';
+    document.getElementById('teaserUrl').value = d.teaserVideo?.url || '';
+    document.getElementById('gearList').value = (d.gearList || []).join(', ');
+    document.getElementById('story_en').value = d.story_en || '';
+    document.getElementById('story_sk').value = d.story_sk || '';
+
+    // Populate Awards Cards
+    awardsList.innerHTML = '';
+    if (d.awards && d.awards.length > 0) {
+      d.awards.forEach(a => createAwardCard(a));
+    }
+
+    // Format BTS
+    if (d.bts && d.bts.length > 0) {
+      document.getElementById('btsText').value = d.bts.map(b => 
+        `${b.media} | ${b.note_en || b.note || ''} | ${b.note_sk || b.note || ''}${b.gear ? ` | ${b.gear}` : ''}`
+      ).join('\n');
+    } else {
+      document.getElementById('btsText').value = '';
+    }
+
+    // Format Gallery
+    if (d.gallery && d.gallery.length > 0) {
+      document.getElementById('galleryText').value = d.gallery.join('\n');
+    } else {
+      document.getElementById('galleryText').value = '';
+    }
+
+    // Restore block order
+    if (d.blockOrder && d.blockOrder.length > 0 && container) {
+      d.blockOrder.forEach(id => {
+        const sec = document.getElementById('sec-' + id);
+        if (sec) container.appendChild(sec);
+      });
+      updateCardBadges();
+    }
+
+    statusMsg.className = "text-amber-400 font-medium";
+    statusMsg.innerText = `Loaded ${p.id}.mdx for editing`;
+  }
+
+  // 4. Start New Blank Project Button (Clears persistence)
+  btnNewProject?.addEventListener('click', () => {
+    document.getElementById('project-form').reset();
+    editingSlugInput.value = "";
+    awardsList.innerHTML = '';
+    
+    // Clear persistence
+    sessionStorage.removeItem('active_edit_slug');
+    history.replaceState(null, '', '/new');
+
+    const slugInput = document.getElementById('slug');
+    slugInput.value = "";
+    slugInput.disabled = false;
+
+    modeDot.className = "h-2 w-2 rounded-full bg-green-500";
+    modeText.innerText = "Mode: Creating New Blank Project";
+    previewLink.classList.add('hidden');
+    submitBtn.innerText = "⚡ Create Project File (.mdx)";
+    statusMsg.className = "text-neutral-400 font-medium";
+    statusMsg.innerText = "Form reset. Ready to create new project.";
+  });
+
+  // 5. In-Card Block Movement (▲ / ▼)
+  function updateCardBadges() {
+    if (!container) return;
+    const cards = Array.from(container.children);
+    cards.forEach((card, index) => {
+      const badge = card.querySelector('.block-badge');
+      if (badge) badge.innerText = String(index + 1);
+
+      const btnUp = card.querySelector('.btn-up');
+      const btnDown = card.querySelector('.btn-down');
+
+      if (btnUp) {
+        if (index === 0) {
+          btnUp.classList.add('opacity-30', 'cursor-not-allowed');
+        } else {
+          btnUp.classList.remove('opacity-30', 'cursor-not-allowed');
+        }
+      }
+
+      if (btnDown) {
+        if (index === cards.length - 1) {
+          btnDown.classList.add('opacity-30', 'cursor-not-allowed');
+        } else {
+          btnDown.classList.remove('opacity-30', 'cursor-not-allowed');
+        }
+      }
+    });
+  }
+
+  if (container) {
+    container.addEventListener('click', (e) => {
+      const target = e.target;
+      if (!(target instanceof HTMLElement)) return;
+
+      if (target.classList.contains('btn-up')) {
+        const card = target.closest('.block-card');
+        if (!card) return;
+        const prev = card.previousElementSibling;
+        if (prev) {
+          container.insertBefore(card, prev);
+          updateCardBadges();
+        }
+      } else if (target.classList.contains('btn-down')) {
+        const card = target.closest('.block-card');
+        if (!card) return;
+        const next = card.nextElementSibling;
+        if (next) {
+          container.insertBefore(next, card);
+          updateCardBadges();
+        }
+      }
+    });
+  }
+
+  updateCardBadges();
+
+  // Template dropdown preset re-orderer
+  document.getElementById('template')?.addEventListener('change', (e) => {
+    const val = e.target.value;
+    let order = ['hero', 'story', 'awards', 'teaser', 'bts', 'gallery'];
+
+    if (val === 'photoreport') {
+      order = ['hero', 'gallery', 'story', 'bts', 'awards', 'teaser'];
+    } else if (val === 'camerawork') {
+      order = ['hero', 'bts', 'story', 'gallery', 'teaser', 'awards'];
+    }
+
+    if (container) {
+      order.forEach(id => {
+        const sec = document.getElementById('sec-' + id);
+        if (sec) container.appendChild(sec);
+      });
+      updateCardBadges();
+    }
+  });
+
+  // 6. SUBMIT HANDLER (STAYS IN EDIT MODE, NO WIPING)
+  document.getElementById('project-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!submitBtn) return;
+    submitBtn.disabled = true;
+    submitBtn.innerText = "Saving to disk...";
+    statusMsg.className = "text-neutral-400 animate-pulse";
+    statusMsg.innerText = "Writing changes to .mdx file...";
+
+    const targetSlug = editingSlugInput.value.trim() || document.getElementById('slug').value.trim();
+
+    const currentOrder = container 
+      ? Array.from(container.children).map(card => card.getAttribute('data-block-id')).filter(Boolean)
+      : [];
+
+    const payload = {
+      title_en: document.getElementById('title_en').value,
+      title_sk: document.getElementById('title_sk').value,
+      slug: targetSlug,
+      date: document.getElementById('date').value,
+      duration: document.getElementById('duration').value,
+      place: document.getElementById('place').value,
+      venue: document.getElementById('venue').value,
+      client: document.getElementById('client').value,
+      skills: document.getElementById('skills').value,
+      collaborators: document.getElementById('collaborators').value,
+      tagline_en: document.getElementById('tagline_en').value,
+      tagline_sk: document.getElementById('tagline_sk').value,
+      story_en: document.getElementById('story_en').value,
+      story_sk: document.getElementById('story_sk').value,
+      coverImage: document.getElementById('coverImage').value,
+      heroType: document.getElementById('heroType').value,
+      heroUrl: document.getElementById('heroUrl').value,
+      teaserTitle_en: document.getElementById('teaserTitle_en').value,
+      teaserTitle_sk: document.getElementById('teaserTitle_sk').value,
+      teaserUrl: document.getElementById('teaserUrl').value,
+      gearList: document.getElementById('gearList').value,
+      awards: getAwardsData(),
+      btsText: document.getElementById('btsText').value,
+      galleryText: document.getElementById('galleryText').value,
+      blockOrder: currentOrder,
+    };
+
+    try {
+      const res = await fetch('/api/create-project', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      const text = await res.text();
+      let result;
+      try {
+        result = JSON.parse(text);
+      } catch (jsonErr) {
+        throw new Error(`Server error (${res.status}): ${text || 'Empty response'}`);
+      }
+
+      if (result.success) {
+        // LOCK IN PERSISTENCE IMMEDIATELY
+        sessionStorage.setItem('active_edit_slug', result.slug);
+        history.replaceState(null, '', `/new?edit=${result.slug}`);
+
+        editingSlugInput.value = result.slug;
+        const slugInput = document.getElementById('slug');
+        if (slugInput) {
+          slugInput.value = result.slug;
+          slugInput.disabled = true;
+        }
+
+        modeDot.className = "h-2 w-2 rounded-full bg-amber-400";
+        modeText.innerText = `Mode: Editing ${result.slug}.mdx`;
+        previewLink.href = `/projects/${result.slug}`;
+        previewLink.classList.remove('hidden');
+
+        const timestamp = new Date().toLocaleTimeString();
+        statusMsg.className = "text-green-400 font-medium";
+        statusMsg.innerHTML = `✓ Saved <span class="underline">${result.slug}.mdx</span> at ${timestamp}!`;
+        
+        submitBtn.disabled = false;
+        submitBtn.innerText = `💾 Update & Save ${result.slug}.mdx`;
+
+        loadProjects();
+      } else {
+        throw new Error(result.error);
+      }
+    } catch (err) {
+      statusMsg.className = "text-red-500 font-medium";
+      statusMsg.innerText = `Error: ${err.message}`;
+      submitBtn.disabled = false;
+      submitBtn.innerText = "⚡ Try Saving Again";
+    }
+  });
+</script>

@@ -1,0 +1,117 @@
+---
+import Layout from '../layouts/Layout.astro';
+import ProjectCard from '../components/ProjectCard.astro';
+import { getCollection } from 'astro:content';
+
+// 1. Načítanie všetkých projektov z content kolekcie
+const projects: any[] = await getCollection('projects');
+
+// 2. Inteligentné zjednotenie tagov (nerozdvojuje Stop-Motion a Stop-motion)
+const skillRegistry: Record<string, string> = {};
+projects.forEach((p: any) => {
+  (p.data.skills || []).forEach((s: string) => {
+    const trimmed = s.trim();
+    const lower = trimmed.toLowerCase();
+    if (trimmed && !skillRegistry[lower]) {
+      skillRegistry[lower] = trimmed;
+    }
+  });
+});
+const allSkills: string[] = Object.values(skillRegistry);
+---
+
+<Layout>
+  <div class="max-w-6xl mx-auto px-4 py-12">
+    <!-- Hero Header s okamžitým prepínaním jazykov -->
+    <section class="mb-12 max-w-3xl">
+      <h1 class="text-3xl md:text-5xl font-black tracking-tight mb-4">
+        <span class="lang-en">Crafting cinema, capturing live sound, building tactile worlds.</span>
+        <span class="lang-sk hidden">Tvorba filmu, záznam živého zvuku, stavba hmatateľných svetov.</span>
+      </h1>
+      <p class="text-neutral-400 text-base leading-relaxed">
+        <span class="lang-en">Freelance filmmaker, location sound mixer, and editor based between Košice and Trnava. Specializing in independent narrative, event media, and practical physical arts.</span>
+        <span class="lang-sk hidden">Nezávislý filmár, lokačný zvukár a strihač pôsobiaci medzi Košicami a Trnavou. Zameriavam sa na hranú a dokumentárnu tvorbu, festivalové médiá a výtvarné umenie.</span>
+      </p>
+    </section>
+
+    <!-- Automaticky generované filter tlačidlá -->
+    <section class="mb-10">
+      <p class="text-xs font-mono uppercase tracking-wider text-neutral-500 mb-3">
+        <span class="lang-en">Filter by Skill / Discipline:</span>
+        <span class="lang-sk hidden">Filtrovať podľa zamerania:</span>
+      </p>
+      
+      <div class="flex flex-wrap gap-2" id="filter-buttons">
+        <button data-filter="all" class="filter-btn active px-3.5 py-1.5 text-xs font-mono rounded bg-amber-500 text-black font-bold transition-all">
+          <span class="lang-en">All</span><span class="lang-sk hidden">Všetko</span> ({projects.length})
+        </button>
+
+        {allSkills.map((skill) => (
+          <button data-filter={skill} class="filter-btn px-3.5 py-1.5 text-xs font-mono rounded bg-neutral-900 border border-neutral-800 text-neutral-300 hover:border-neutral-600 transition-all">
+            {skill}
+          </button>
+        ))}
+      </div>
+    </section>
+
+    <!-- Grid kariet projektov (otvára projekt v novom okne) -->
+    <section class="grid grid-cols-1 md:grid-cols-2 gap-8" id="projects-grid">
+      {projects.map((project: any) => (
+        <ProjectCard project={project} />
+      ))}
+    </section>
+  </div>
+</Layout>
+
+<!-- Klientsky filter skript s podporou ?skill= linkov z About stránky -->
+<script is:inline>
+  const buttons = document.querySelectorAll('.filter-btn');
+  const cards = document.querySelectorAll('.project-card');
+
+  function applyFilter(filter) {
+    // 1. Vizuálna zmena aktívneho tlačidla
+    buttons.forEach(b => {
+      b.classList.remove('bg-amber-500', 'text-black', 'font-bold');
+      b.classList.add('bg-neutral-900', 'text-neutral-300');
+    });
+
+    const activeBtn = Array.from(buttons).find(b => 
+      (b.getAttribute('data-filter') || '').toLowerCase() === filter.toLowerCase()
+    );
+
+    if (activeBtn) {
+      activeBtn.classList.remove('bg-neutral-900', 'text-neutral-300');
+      activeBtn.classList.add('bg-amber-500', 'text-black', 'font-bold');
+    }
+
+    // 2. Filtrovanie kariet (case-insensitive)
+    cards.forEach(card => {
+      const skills = (card.getAttribute('data-skills') || '').toLowerCase().split('|');
+      if (filter.toLowerCase() === 'all' || skills.includes(filter.toLowerCase())) {
+        card.classList.remove('hidden');
+      } else {
+        card.classList.add('hidden');
+      }
+    });
+  }
+
+  // Kliknutie na filter tlačidlá priamo na stránke
+  buttons.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const filter = btn.getAttribute('data-filter') || 'all';
+      applyFilter(filter);
+    });
+  });
+
+  // Reakcia na prichádzajúce URL parametre (napr. z About stránky ?skill=Stop-Motion)
+  const urlParams = new URLSearchParams(window.location.search);
+  const targetSkill = urlParams.get('skill') || urlParams.get('filter');
+
+  if (targetSkill) {
+    applyFilter(targetSkill);
+    setTimeout(() => {
+      document.getElementById('projects-grid')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 150);
+  }
+</script>

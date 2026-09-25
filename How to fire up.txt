@@ -1,0 +1,25 @@
+1. Inside VS Code
+ select C:\Users\boper\Documents\bogdan-portfolio.
+
+Start the local server:
+
+Bash
+npm run dev
+
+2. Your Local Website Links (Browser)
+Once the terminal says Local: http://localhost:4321/, use these links:
+🏠 Homepage (Portfolio Grid & Filters):
+👉 http://localhost:4321
+⚡ Project Studio & CMS (Generator / Editor):
+👉 http://localhost:4321/new
+🔨 Workshop Cockpit (Festivals, Forge, Notion):
+👉 http://localhost:4321/workshop
+👤 About & Contact (Bio, Skills Cloud, Direct Contact):
+👉 http://localhost:4321/about
+📄 Direct CV PDF Endpoint:
+👉 http://localhost:4321/cv.pdf
+📦 Raw JSON Data Export:
+👉 http://localhost:4321/api/projects.json
+3. Shutdown Command
+When you are done for the day:
+Click inside the terminal panel and press Ctrl + C to shut down the server cleanly.

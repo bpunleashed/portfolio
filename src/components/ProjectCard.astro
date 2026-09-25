@@ -1,0 +1,83 @@
+---
+interface Props {
+  project: any;
+}
+
+const { project } = Astro.props;
+const data = project.data;
+---
+
+<a 
+  href={`/projects/${project.id}`} 
+  target="_blank" 
+  rel="noopener noreferrer"
+  class="project-card group block border border-neutral-900 rounded-xl overflow-hidden bg-neutral-950/80 hover:border-neutral-700 transition-all duration-300"
+  data-skills={data.skills.join('|')}
+>
+  <div class="aspect-video w-full overflow-hidden bg-neutral-900 relative">
+    <img 
+      src={data.coverImage} 
+      alt={data.title_en || data.title} 
+      class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-90 group-hover:opacity-100" 
+    />
+    <div class="absolute top-3 right-3 bg-neutral-950/80 backdrop-blur border border-neutral-800 text-[11px] font-mono px-2 py-0.5 rounded text-neutral-300">
+      Open ↗
+    </div>
+  </div>
+
+  <div class="p-6">
+    <div class="mb-4">
+      <!-- Bilingual Card Title -->
+      <h2 class="text-2xl font-bold mb-1.5 group-hover:text-amber-400 transition-colors">
+        <span class="lang-en">{data.title_en || data.title}</span>
+        <span class="lang-sk hidden">{data.title_sk || data.title}</span>
+      </h2>
+      
+      <!-- Bilingual Card Tagline -->
+      <p class="text-sm text-neutral-400 leading-relaxed">
+        <span class="lang-en">{data.tagline_en}</span>
+        <span class="lang-sk hidden">{data.tagline_sk}</span>
+      </p>
+    </div>
+
+    <!-- Skills Badges -->
+    <div class="flex flex-wrap gap-1.5 mb-5">
+      {data.skills.map((skill: string) => (
+        <span class="px-2 py-0.5 text-[11px] font-mono bg-neutral-900 border border-neutral-800 text-amber-400/90 rounded">
+          {skill}
+        </span>
+      ))}
+    </div>
+
+    <!-- Meta Info Box -->
+    <div class="border-t border-neutral-900 pt-4 space-y-2 text-xs font-mono text-neutral-400">
+      <div class="grid grid-cols-2 gap-2">
+        <div>
+          <span class="text-neutral-600 block text-[10px] uppercase">
+            <span class="lang-en">Date:</span><span class="lang-sk hidden">Dátum:</span>
+          </span> 
+          {data.date}
+        </div>
+        <div>
+          <span class="text-neutral-600 block text-[10px] uppercase">
+            <span class="lang-en">Location:</span><span class="lang-sk hidden">Miesto:</span>
+          </span> 
+          {data.place}
+        </div>
+      </div>
+      {data.venue && (
+        <div>
+          <span class="text-neutral-600 block text-[10px] uppercase">Venue:</span> {data.venue}
+        </div>
+      )}
+      {data.client && (
+        <div>
+          <span class="text-neutral-600 block text-[10px] uppercase">
+            <span class="lang-en">Client:</span><span class="lang-sk hidden">Klient:</span>
+          </span> 
+          <strong class="text-neutral-200">{data.client}</strong>
+        </div>
+      )}
+    </div>
+  </div>
+</a>

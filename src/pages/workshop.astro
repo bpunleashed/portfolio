@@ -1,0 +1,112 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+const tools = [
+  {
+    title: "Slovak Film Festivals",
+    category: "Festival Database & Calendar",
+    category_sk: "Prehľad a kalendár filmových festivalov",
+    desc_en: "Curated directory of Slovak film festivals, submission deadlines, competitive categories, and screening circuits.",
+    desc_sk: "Kompletný prehľad slovenských filmových festivalov, uzávierok prihlášok, kategórií a premietacích okruhov.",
+    url: "https://bpunleashed.github.io/slovakfilmfestivals/",
+    badge: "Public Tool",
+    icon: "🎬"
+  },
+  {
+    title: "Forge",
+    category: "Filmmaker Online Resources",
+    category_sk: "Online zdroje a nástroje pre filmárov",
+    desc_en: "Handpicked library of digital tools, sound FX archives, technical charts, LUTs, and pre-production resources.",
+    desc_sk: "Kurátorská knižnica digitálnych nástrojov, zvukových baniek, technických tabuliek, LUTov a zdrojov pre preprodukciu.",
+    url: "https://bpunleashed.github.io/forge/",
+    badge: "Resource Hub",
+    icon: "🔨"
+  },
+  {
+    title: "AV Gear & Inventory Hub",
+    category: "Notion Production Matrix",
+    category_sk: "Prehľad techniky a riggov v Notione",
+    desc_en: "Relational database tracking camera packages, field audio rigs, cable lengths, and set pack-out checklists.",
+    desc_sk: "Relačná databáza techniky: kamerové sety, zvukové tašky, dĺžky káblov a baliace zoznamy na natáčanie.",
+    url: "https://app.notion.com/p/3ddb659aec16803f99d1d7ca785348c1?v=3ddb659aec1680239bef000c6aea2828", // Replace with your Notion link when ready
+    badge: "Personal Rig Builder",
+    icon: "⚙️"
+  },
+  {
+    title: "Project Studio / CMS",
+    category: "Internal Generator",
+    category_sk: "Interný generátor projektov",
+    desc_en: "Local in-browser studio to configure metadata, arrange vertical layout blocks, and edit existing project files.",
+    desc_sk: "Lokálne štúdio na pridávanie a úpravu projektov, radenie blokov a okamžité generovanie .mdx súborov.",
+    url: "/new",
+    badge: "Internal Tool",
+    icon: "⚡"
+  }
+];
+---
+
+<Layout title="Workshop & Filmmaker Tools | Bogdan Perederii">
+  <div class="max-w-5xl mx-auto px-4 py-12">
+    <!-- Header -->
+    <header class="mb-12 border-b border-neutral-850 pb-8">
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 font-mono text-xs mb-4">
+        <span>⚙️</span>
+        <span class="lang-en">Production Cockpit & Resources</span>
+        <span class="lang-sk hidden">Produkčný panel & Zdroje</span>
+      </div>
+
+      <h1 class="text-4xl md:text-5xl font-black tracking-tight mb-4">
+        <span class="lang-en">The Workshop</span>
+        <span class="lang-sk hidden">Dielňa a Nástroje</span>
+      </h1>
+      
+      <p class="text-neutral-400 text-base max-w-2xl leading-relaxed">
+        <span class="lang-en">A central control room linking my open-source projects, festival monitoring tools, sound/camera checklists, and production resources.</span>
+        <span class="lang-sk hidden">Centrálny ovládací panel prepájajúci moje festivalové databázy, technické súpravy a overené nástroje pre filmovú a zvukovú tvorbu.</span>
+      </p>
+    </header>
+
+    <!-- Grid of Tools -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {tools.map((item) => (
+        <a 
+          href={item.url} 
+          target={item.url.startsWith('http') ? "_blank" : "_self"}
+          rel="noopener noreferrer"
+          class="group p-6 rounded-2xl border border-neutral-850 bg-neutral-900/40 hover:bg-neutral-900/80 hover:border-neutral-700 transition-all duration-300 flex flex-col justify-between"
+        >
+          <div>
+            <div class="flex items-center justify-between mb-4">
+              <span class="text-3xl p-2.5 rounded-xl bg-neutral-950 border border-neutral-800 group-hover:scale-110 transition-transform">
+                {item.icon}
+              </span>
+              <span class="text-[10px] font-mono uppercase tracking-widest text-amber-400/90 px-2 py-0.5 rounded bg-neutral-950 border border-neutral-800">
+                {item.badge}
+              </span>
+            </div>
+
+            <h2 class="text-xl font-bold mb-1 text-white group-hover:text-amber-400 transition-colors flex items-center gap-1.5">
+              {item.title}
+              <span class="text-xs font-mono text-neutral-500 group-hover:text-amber-400 transition-colors">↗</span>
+            </h2>
+
+            <p class="text-xs font-mono text-neutral-400 mb-3">
+              <span class="lang-en">{item.category}</span>
+              <span class="lang-sk hidden">{item.category_sk}</span>
+            </p>
+
+            <p class="text-sm text-neutral-400 leading-relaxed">
+              <span class="lang-en">{item.desc_en}</span>
+              <span class="lang-sk hidden">{item.desc_sk}</span>
+            </p>
+          </div>
+
+          <div class="pt-6 mt-6 border-t border-neutral-850/60 flex items-center justify-between text-xs font-mono text-neutral-500 group-hover:text-neutral-300 transition-colors">
+            <span>Launch Tool</span>
+            <span>→</span>
+          </div>
+        </a>
+      ))}
+    </div>
+  </div>
+</Layout>
