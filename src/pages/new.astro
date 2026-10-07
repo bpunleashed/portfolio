@@ -484,7 +484,7 @@ import Layout from '../layouts/Layout.astro';
 
   loadProjects();
 
-  // Search filter
+  // 2. Search Box Filter Logic (Klikateľné tlačidlá + Auto-Scroll)
   searchInput?.addEventListener('input', () => {
     const q = searchInput.value.trim().toLowerCase();
     if (!q) {
@@ -501,21 +501,42 @@ import Layout from '../layouts/Layout.astro';
     });
 
     if (matches.length === 0) {
-      searchResults.innerHTML = `<div class="p-3 text-xs font-mono text-neutral-500 text-center">No projects match "${q}"</div>`;
+      searchResults.innerHTML = `<div class="p-3 text-xs font-mono text-neutral-500 text-center">Žiadny projekt sa nezhoduje s "${q}"</div>`;
       searchResults.classList.remove('hidden');
       return;
     }
 
+    // Vytvorenie SKUTOČNÝCH klikateľných <button> prvkov
     searchResults.innerHTML = matches.map(p => `
-      <div class="search-item p-3 hover:bg-neutral-850 cursor-pointer flex items-center justify-between transition-colors" data-id="${p.id}">
+      <button type="button" class="search-item w-full text-left p-3 hover:bg-neutral-850 cursor-pointer flex items-center justify-between transition-colors border-b border-neutral-850 last:border-0" data-id="${p.id}">
         <div>
           <strong class="text-sm text-white block">${p.data.title_sk || p.data.title_en || p.id}</strong>
           <span class="text-[11px] font-mono text-neutral-400">${p.data.date} • ${(p.data.skills || []).slice(0, 2).join(', ')}</span>
         </div>
-        <span class="text-xs font-mono text-amber-500">Edit →</span>
-      </div>
+        <span class="text-xs font-mono text-amber-400 font-bold px-2 py-1 rounded bg-amber-500/10 border border-amber-500/20">Upraviť →</span>
+      </button>
     `).join('');
     searchResults.classList.remove('hidden');
+  });
+
+  // Výber projektu kliknutím s automatickým odscrollovaním
+  searchResults?.addEventListener('click', (e) => {
+    const btn = e.target.closest('.search-item');
+    if (!btn) return;
+    const selectedId = btn.getAttribute('data-id');
+    
+    try {
+      loadProjectIntoForm(selectedId);
+      searchResults.classList.add('hidden');
+      searchInput.value = '';
+
+      // AUTOMATICKÉ ODESCROLLOVANIE K FORMULÁRU
+      setTimeout(() => {
+        document.getElementById('project-form')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+    } catch (err) {
+      alert("Chyba pri načítaní projektu: " + err.message);
+    }
   });
 
   document.addEventListener('click', (e) => {
@@ -534,83 +555,100 @@ import Layout from '../layouts/Layout.astro';
   });
 
   // 3. Load Project into Form & Persist in URL / Session
+ // 3. Bezpečné načítanie projektu do formulára (Opravené: p.id namiesto result.slug)
   function loadProjectIntoForm(id) {
     const p = allProjects.find(item => item.id === id);
     if (!p) return;
 
-    // PERSISTENCE: Save to Session & update URL so reloads don't wipe the form
+    const base = document.getElementById('project-form')?.getAttribute('data-base') || '';
+
+    // Uloženie aktívneho projektu do Session a URL bez odstrihnutia cesty
     sessionStorage.setItem('active_edit_slug', p.id);
-    history.replaceState(null, '', `/new?edit=${p.id}`);
+    history.replaceState(null, '', `${window.location.pathname}?edit=${p.id}`);
 
-    editingSlugInput.value = p.id;
-    modeDot.className = "h-2 w-2 rounded-full bg-amber-400 animate-pulse";
-    modeText.innerText = `Mode: Editing ${p.id}.mdx`;
-    previewLink.href = `/projects/${p.id}`;
-    previewLink.classList.remove('hidden');
-    submitBtn.innerText = `💾 Update & Save ${p.id}.mdx`;
+    if (editingSlugInput) editingSlugInput.value = p.id;
+    if (modeDot) modeDot.className = "h-2 w-2 rounded-full bg-amber-400 animate-pulse";
+    if (modeText) modeText.innerText = `Mode: Editing ${p.id}.mdx`;
+    if (previewLink) {
+      previewLink.href = `${base}/projects/${p.id}`;
+      previewLink.classList.remove('hidden');
+    }
+    if (submitBtn) submitBtn.innerText = `💾 Update & Save ${p.id}.mdx`;
 
-    const d = p.data;
-    document.getElementById('title_en').value = d.title_en || d.title || '';
-    document.getElementById('title_sk').value = d.title_sk || d.title || '';
+    const d = p.data || {};
+    
+    // Bezpečné plnenie polí (nespadne, ani ak niektorý prvok chýba)
+    const setVal = (elId, val) => {
+      const el = document.getElementById(elId);
+      if (el) el.value = val || '';
+    };
+
+    setVal('title_en', d.title_en || d.title);
+    setVal('title_sk', d.title_sk || d.title);
     
     const slugInput = document.getElementById('slug');
-    slugInput.value = p.id;
-    slugInput.disabled = true;
-
-    document.getElementById('date').value = d.date || '';
-    document.getElementById('duration').value = d.duration || '';
-    document.getElementById('place').value = d.place || '';
-    document.getElementById('venue').value = d.venue || '';
-    document.getElementById('client').value = d.client || '';
-    document.getElementById('skills').value = (d.skills || []).join(', ');
-    document.getElementById('collaborators').value = (d.collaborators || []).join(', ');
-    document.getElementById('tagline_en').value = d.tagline_en || '';
-    document.getElementById('tagline_sk').value = d.tagline_sk || '';
-    document.getElementById('coverImage').value = d.coverImage || '';
-    document.getElementById('heroType').value = d.heroMedia?.type || 'video';
-    document.getElementById('heroUrl').value = d.heroMedia?.url || '';
-    document.getElementById('teaserTitle_en').value = d.teaserVideo?.title_en || '';
-    document.getElementById('teaserTitle_sk').value = d.teaserVideo?.title_sk || '';
-    document.getElementById('teaserUrl').value = d.teaserVideo?.url || '';
-    document.getElementById('gearList').value = (d.gearList || []).join(', ');
-    document.getElementById('story_en').value = d.story_en || '';
-    document.getElementById('story_sk').value = d.story_sk || '';
-
-    // Populate Awards Cards
-    awardsList.innerHTML = '';
-    if (d.awards && d.awards.length > 0) {
-      d.awards.forEach(a => createAwardCard(a));
+    if (slugInput) {
+      slugInput.value = p.id;
+      slugInput.disabled = true;
     }
 
-    // Format BTS
+    setVal('date', d.date);
+    setVal('duration', d.duration);
+    setVal('place', d.place);
+    setVal('venue', d.venue);
+    setVal('client', d.client);
+    setVal('skills', (d.skills || []).join(', '));
+    setVal('collaborators', (d.collaborators || []).join(', '));
+    setVal('tagline_en', d.tagline_en);
+    setVal('tagline_sk', d.tagline_sk);
+    setVal('coverImage', d.coverImage);
+    setVal('heroType', d.heroMedia?.type || 'video');
+    setVal('heroUrl', d.heroMedia?.url);
+    setVal('teaserTitle_en', d.teaserVideo?.title_en);
+    setVal('teaserTitle_sk', d.teaserVideo?.title_sk);
+    setVal('teaserUrl', d.teaserVideo?.url);
+    setVal('gearList', (d.gearList || []).join(', '));
+    setVal('story_en', d.story_en);
+    setVal('story_sk', d.story_sk);
+
+    // Vykreslenie kariet ocenení
+    if (awardsList) {
+      awardsList.innerHTML = '';
+      if (d.awards && d.awards.length > 0) {
+        d.awards.forEach(a => createAwardCard(a));
+      }
+    }
+
+    // Vykreslenie BTS
     if (d.bts && d.bts.length > 0) {
-      document.getElementById('btsText').value = d.bts.map(b => 
+      setVal('btsText', d.bts.map(b => 
         `${b.media} | ${b.note_en || b.note || ''} | ${b.note_sk || b.note || ''}${b.gear ? ` | ${b.gear}` : ''}`
-      ).join('\n');
+      ).join('\n'));
     } else {
-      document.getElementById('btsText').value = '';
+      setVal('btsText', '');
     }
 
-    // Format Gallery
+    // Vykreslenie Galérie
     if (d.gallery && d.gallery.length > 0) {
-      document.getElementById('galleryText').value = d.gallery.join('\n');
+      setVal('galleryText', d.gallery.join('\n'));
     } else {
-      document.getElementById('galleryText').value = '';
+      setVal('galleryText', '');
     }
 
-    // Restore block order
+    // Obnovenie poradia blokov
     if (d.blockOrder && d.blockOrder.length > 0 && container) {
-      d.blockOrder.forEach(id => {
-        const sec = document.getElementById('sec-' + id);
+      d.blockOrder.forEach(blockId => {
+        const sec = document.getElementById('sec-' + blockId);
         if (sec) container.appendChild(sec);
       });
       updateCardBadges();
     }
 
-    statusMsg.className = "text-amber-400 font-medium";
-    statusMsg.innerText = `Loaded ${p.id}.mdx for editing`;
+    if (statusMsg) {
+      statusMsg.className = "text-amber-400 font-medium";
+      statusMsg.innerText = `Loaded ${p.id}.mdx for editing`;
+    }
   }
-
   // 4. Start New Blank Project Button (Clears persistence)
   btnNewProject?.addEventListener('click', () => {
     document.getElementById('project-form').reset();
@@ -619,7 +657,7 @@ import Layout from '../layouts/Layout.astro';
     
     // Clear persistence
     sessionStorage.removeItem('active_edit_slug');
-    history.replaceState(null, '', '/new');
+    history.replaceState(null, '', window.location.pathname);
 
     const slugInput = document.getElementById('slug');
     slugInput.value = "";
@@ -770,7 +808,7 @@ import Layout from '../layouts/Layout.astro';
       if (result.success) {
         // LOCK IN PERSISTENCE IMMEDIATELY
         sessionStorage.setItem('active_edit_slug', result.slug);
-        history.replaceState(null, '', `/new?edit=${result.slug}`);
+        history.replaceState(null, '', `${window.location.pathname}?edit=${p.id}`);
 
         editingSlugInput.value = result.slug;
         const slugInput = document.getElementById('slug');

@@ -1,0 +1,16 @@
+Na laptope zapneš server:
+Vo VS Code termináli: npm run dev 
+→
+ otvoríš http://localhost:4321/new (alebo klikneš dole v pätičke na ⚙ Studio).
+Vyplníš projekt a uložíš:
+Zadáš názov, tagy, link na video/fotky 
+→
+ klikneš Save.
+Pošleš to naživo do sveta:
+V termináli zadáš tri príkazy:
+code
+Powershell
+git add .
+git commit -m "Add new project"
+git push
+Do 45 sekúnd je nový projekt publikovaný naživo na https://bpunleashed.github.io/portfolio/.

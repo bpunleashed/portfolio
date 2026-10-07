@@ -1,3 +1,4 @@
+export const prerender = false;
 export const GET: APIRoute = async () => {
   return new Response(JSON.stringify({ status: 'Studio endpoint active locally' }), {
     status: 200,
