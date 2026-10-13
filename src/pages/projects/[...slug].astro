@@ -16,6 +16,8 @@ const { entry } = Astro.props as { entry: any };
 const { Content } = await render(entry);
 const d = entry.data;
 
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+
 // Automatic Related Projects by Skill Overlap
 const currentSkills: string[] = d.skills || [];
 const relatedProjects = allProjects
@@ -42,19 +44,18 @@ function getEmbedUrl(url: string) {
 }
 
 const order: string[] = d.blockOrder || ['hero', 'story', 'awards', 'teaser', 'gallery', 'bts'];
-const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 ---
 
 <Layout title={`${d.title_en || d.title} | Bogdan Perederii`}>
   <article class="max-w-4xl mx-auto px-4 py-12">
-   <!-- PÔVODNE: <a href="/" ...> -->
-<a href={`${base}/`} class="text-xs font-mono text-neutral-500 hover:text-amber-400 mb-8 inline-block">
-  <span class="lang-en">← Back to Portfolio</span>
-  <span class="lang-sk hidden">← Späť na portfólio</span>
-</a>
+    <!-- Breadcrumb -->
+    <a href={`${base}/`} class="text-xs font-mono text-neutral-500 hover:text-amber-400 mb-8 inline-block">
+      <span class="lang-en">← Back to Portfolio</span>
+      <span class="lang-sk hidden">← Späť na portfólio</span>
+    </a>
 
-    <!-- BASE HEADER -->
-    <header class="border-b border-neutral-800 pb-8 mb-10">
+    <!-- BASE HEADER (Jediná spodná čiara) -->
+    <header class="border-b border-neutral-800 pb-10 mb-12">
       <div class="flex flex-wrap gap-2 mb-4">
         {d.skills.map((s: string) => (
           <span class="px-2 py-0.5 text-xs font-mono bg-neutral-900 border border-neutral-800 text-amber-400 rounded">
@@ -68,10 +69,12 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
         <span class="lang-sk hidden">{d.title_sk || d.title}</span>
       </h1>
       
-      <p class="text-lg text-neutral-300 leading-relaxed mb-6">
-        <span class="lang-en">{d.tagline_en}</span>
-        <span class="lang-sk hidden">{d.tagline_sk}</span>
-      </p>
+      {(d.tagline_en || d.tagline_sk) && (
+        <p class="text-lg text-neutral-300 leading-relaxed mb-6">
+          <span class="lang-en">{d.tagline_en}</span>
+          <span class="lang-sk hidden">{d.tagline_sk}</span>
+        </p>
+      )}
 
       <!-- Meta Grid -->
       <div class="grid grid-cols-2 md:grid-cols-5 gap-4 p-4 rounded-xl bg-neutral-900/50 border border-neutral-800 text-xs font-mono text-neutral-400">
@@ -121,12 +124,12 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
       )}
     </header>
 
-    <!-- DYNAMICALLY ORDERED BLOCKS -->
+    <!-- DYNAMICALLY ORDERED BLOCKS (Každý má len border-b a vykreslí sa len ak má obsah) -->
     {order.map((blockName) => {
-      // 1. HERO MEDIA (Zobrazí sa LEN vtedy, ak má zadanú reálnu URL!)
+      // 1. HERO MEDIA (Len ak existuje reálna URL a nie je to zástupný odkaz)
       if (blockName === 'hero' && d.heroMedia && d.heroMedia.url && d.heroMedia.url.trim() !== '' && !d.heroMedia.url.includes('dQw4w9WgXcQ')) {
         return (
-          <section class="mb-14">
+          <section class="border-b border-neutral-800 pb-12 mb-12">
             {d.heroMedia.type === 'video' ? (
               <div class="aspect-video w-full rounded-2xl overflow-hidden bg-neutral-900 border border-neutral-800 shadow-2xl">
                 <iframe 
@@ -145,11 +148,12 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
           </section>
         );
       }
-      
-      // 2. STORY / DIRECTOR'S STATEMENT
-      if (blockName === 'story') {
+
+      // 2. STORY / DIRECTOR'S STATEMENT (Len ak reálne obsahuje text)
+      const hasStory = Boolean(d.story_en?.trim() || d.story_sk?.trim() || (entry.body && entry.body.trim().length > 30));
+      if (blockName === 'story' && hasStory) {
         return (
-          <div class="mb-16">
+          <section class="border-b border-neutral-800 pb-12 mb-12">
             {d.story_en && (
               <div class="lang-en prose prose-invert prose-neutral max-w-none text-neutral-300 leading-relaxed whitespace-pre-line">
                 {d.story_en}
@@ -163,14 +167,14 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
             <div class="prose prose-invert prose-neutral max-w-none text-neutral-300 leading-relaxed">
               <Content />
             </div>
-          </div>
+          </section>
         );
       }
 
-      // 3. AWARDS & LAURELS (Differentiated Icons: 🏆 for prizes, 🌿 for selections + Diploma/Laurel Photo Slot)
+      // 3. AWARDS & LAURELS (Len ak pole nie je prázdne)
       if (blockName === 'awards' && d.awards && d.awards.length > 0) {
         return (
-          <section class="mb-16 border-t border-neutral-800 pt-10">
+          <section class="border-b border-neutral-800 pb-12 mb-12">
             <h2 class="text-xs font-mono uppercase tracking-widest text-amber-500 mb-6">
               <span class="lang-en">Awards & Festival Selections</span>
               <span class="lang-sk hidden">Ocenenia a festivalové výbery</span>
@@ -199,14 +203,13 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
                       <span class="text-xs font-mono text-neutral-500 mt-1 block">({a.year})</span>
                     </div>
 
-                    {/* Displays image ONLY if laurelImage link is provided */}
                     {a.laurelImage && (
                       <div class="mt-5 pt-4 border-t border-neutral-800/80 flex items-center justify-center min-h-[120px]">
                         <a href={a.laurelImage} target="_blank" rel="noopener noreferrer" class="group block" title="Open image">
                           <img 
                             src={a.laurelImage} 
                             alt={`${a.festival} Laurel/Diploma`} 
-                            class="max-h-32 w-auto max-w-full object-contain rounded filter drop-shadow group-hover:scale-105 transition-transform duration-300"
+                            class="max-h-32 w-auto max-w-full object-contain rounded filter drop-shadow group-hover:scale-105 transition-transform duration-300" 
                             loading="lazy"
                           />
                         </a>
@@ -220,10 +223,10 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
         );
       }
 
-      // 4. TEASER TRAILER
-      if (blockName === 'teaser' && d.teaserVideo) {
+      // 4. TEASER TRAILER (Len ak existuje platná URL)
+      if (blockName === 'teaser' && d.teaserVideo && d.teaserVideo.url && d.teaserVideo.url.trim() !== '') {
         return (
-          <section class="mb-16 border-t border-neutral-800 pt-10">
+          <section class="border-b border-neutral-800 pb-12 mb-12">
             <div class="flex items-center gap-2 mb-4">
               <span class="text-amber-500 text-sm">▶</span>
               <h2 class="text-xs font-mono uppercase tracking-widest text-neutral-300">
@@ -250,10 +253,10 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
         );
       }
 
-      // 5. GALLERY
+      // 5. GALLERY (Len ak pole obsahuje fotky)
       if (blockName === 'gallery' && d.gallery && d.gallery.length > 0) {
         return (
-          <section class="mb-16 border-t border-neutral-800 pt-10">
+          <section class="border-b border-neutral-800 pb-12 mb-12">
             <h2 class="text-xs font-mono uppercase tracking-widest text-neutral-500 mb-6">
               <span class="lang-en">Gallery / Stills</span>
               <span class="lang-sk hidden">Galéria záberov</span>
@@ -269,10 +272,11 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
         );
       }
 
-      // 6. BTS & TECH BREAKDOWN
-      if (blockName === 'bts' && (d.gearList.length > 0 || d.bts.length > 0)) {
+      // 6. BTS & TECH BREAKDOWN (Len ak je vyplnená technika alebo BTS fotky)
+      const hasBts = Boolean((d.gearList && d.gearList.length > 0) || (d.bts && d.bts.length > 0));
+      if (blockName === 'bts' && hasBts) {
         return (
-          <section class="mb-16 border-t border-neutral-800 pt-10">
+          <section class="border-b border-neutral-800 pb-12 mb-12">
             <h2 class="text-xs font-mono uppercase tracking-widest text-neutral-500 mb-6">
               <span class="lang-en">Behind The Scenes & Tech Breakdown</span>
               <span class="lang-sk hidden">Zákulisie & Technické vybavenie</span>
@@ -325,9 +329,9 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
       return null;
     })}
 
-    <!-- BLOCK 5: AUTOMATIC RELATED PROJECTS -->
+    <!-- BLOCK 5: AUTOMATIC RELATED PROJECTS (Úplne na konci) -->
     {relatedProjects.length > 0 && (
-      <section class="border-t border-neutral-800 pt-12 mt-12">
+      <section class="pt-4">
         <div class="flex items-center justify-between mb-6">
           <h2 class="text-xs font-mono uppercase tracking-widest text-neutral-400">
             <span class="lang-en">Related Projects</span>
