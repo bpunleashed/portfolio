@@ -1,9 +1,4 @@
 ---
-// PRODUCTION LOCKOUT: If accessed on the live website, block and redirect!
-if (import.meta.env.PROD) {
-  return Astro.redirect('/');
-}
-
 import Layout from '../layouts/Layout.astro';
 ---
 
@@ -248,10 +243,7 @@ import Layout from '../layouts/Layout.astro';
             </div>
           </div>
 
-          <!-- DYNAMIC LIST OF AWARD CARDS -->
-          <div id="awards-list" class="space-y-4">
-            <!-- Individual award cards injected here -->
-          </div>
+          <div id="awards-list" class="space-y-4"></div>
 
           <button 
             type="button" 
@@ -471,7 +463,6 @@ import Layout from '../layouts/Layout.astro';
       const res = await fetch('/api/projects.json');
       allProjects = await res.json();
 
-      // Check if URL or session has an active project to restore!
       const urlParams = new URLSearchParams(window.location.search);
       const activeSlug = urlParams.get('edit') || sessionStorage.getItem('active_edit_slug');
       if (activeSlug) {
@@ -484,7 +475,7 @@ import Layout from '../layouts/Layout.astro';
 
   loadProjects();
 
-  // 2. Search Box Filter Logic (Klikateľné tlačidlá + Auto-Scroll)
+  // Search filter
   searchInput?.addEventListener('input', () => {
     const q = searchInput.value.trim().toLowerCase();
     if (!q) {
@@ -501,42 +492,21 @@ import Layout from '../layouts/Layout.astro';
     });
 
     if (matches.length === 0) {
-      searchResults.innerHTML = `<div class="p-3 text-xs font-mono text-neutral-500 text-center">Žiadny projekt sa nezhoduje s "${q}"</div>`;
+      searchResults.innerHTML = `<div class="p-3 text-xs font-mono text-neutral-500 text-center">No projects match "${q}"</div>`;
       searchResults.classList.remove('hidden');
       return;
     }
 
-    // Vytvorenie SKUTOČNÝCH klikateľných <button> prvkov
     searchResults.innerHTML = matches.map(p => `
       <button type="button" class="search-item w-full text-left p-3 hover:bg-neutral-850 cursor-pointer flex items-center justify-between transition-colors border-b border-neutral-850 last:border-0" data-id="${p.id}">
         <div>
           <strong class="text-sm text-white block">${p.data.title_sk || p.data.title_en || p.id}</strong>
           <span class="text-[11px] font-mono text-neutral-400">${p.data.date} • ${(p.data.skills || []).slice(0, 2).join(', ')}</span>
         </div>
-        <span class="text-xs font-mono text-amber-400 font-bold px-2 py-1 rounded bg-amber-500/10 border border-amber-500/20">Upraviť →</span>
+        <span class="text-xs font-mono text-amber-400 font-bold px-2 py-1 rounded bg-amber-500/10 border border-amber-500/20">Edit →</span>
       </button>
     `).join('');
     searchResults.classList.remove('hidden');
-  });
-
-  // Výber projektu kliknutím s automatickým odscrollovaním
-  searchResults?.addEventListener('click', (e) => {
-    const btn = e.target.closest('.search-item');
-    if (!btn) return;
-    const selectedId = btn.getAttribute('data-id');
-    
-    try {
-      loadProjectIntoForm(selectedId);
-      searchResults.classList.add('hidden');
-      searchInput.value = '';
-
-      // AUTOMATICKÉ ODESCROLLOVANIE K FORMULÁRU
-      setTimeout(() => {
-        document.getElementById('project-form')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 100);
-    } catch (err) {
-      alert("Chyba pri načítaní projektu: " + err.message);
-    }
   });
 
   document.addEventListener('click', (e) => {
@@ -554,15 +524,10 @@ import Layout from '../layouts/Layout.astro';
     searchInput.value = '';
   });
 
-  // 3. Load Project into Form & Persist in URL / Session
- // 3. Bezpečné načítanie projektu do formulára (Opravené: p.id namiesto result.slug)
   function loadProjectIntoForm(id) {
     const p = allProjects.find(item => item.id === id);
     if (!p) return;
 
-    const base = document.getElementById('project-form')?.getAttribute('data-base') || '';
-
-    // Uloženie aktívneho projektu do Session a URL bez odstrihnutia cesty
     sessionStorage.setItem('active_edit_slug', p.id);
     history.replaceState(null, '', `${window.location.pathname}?edit=${p.id}`);
 
@@ -570,14 +535,12 @@ import Layout from '../layouts/Layout.astro';
     if (modeDot) modeDot.className = "h-2 w-2 rounded-full bg-amber-400 animate-pulse";
     if (modeText) modeText.innerText = `Mode: Editing ${p.id}.mdx`;
     if (previewLink) {
-      previewLink.href = `${base}/projects/${p.id}`;
+      previewLink.href = `/projects/${p.id}`;
       previewLink.classList.remove('hidden');
     }
     if (submitBtn) submitBtn.innerText = `💾 Update & Save ${p.id}.mdx`;
 
     const d = p.data || {};
-    
-    // Bezpečné plnenie polí (nespadne, ani ak niektorý prvok chýba)
     const setVal = (elId, val) => {
       const el = document.getElementById(elId);
       if (el) el.value = val || '';
@@ -611,7 +574,6 @@ import Layout from '../layouts/Layout.astro';
     setVal('story_en', d.story_en);
     setVal('story_sk', d.story_sk);
 
-    // Vykreslenie kariet ocenení
     if (awardsList) {
       awardsList.innerHTML = '';
       if (d.awards && d.awards.length > 0) {
@@ -619,7 +581,6 @@ import Layout from '../layouts/Layout.astro';
       }
     }
 
-    // Vykreslenie BTS
     if (d.bts && d.bts.length > 0) {
       setVal('btsText', d.bts.map(b => 
         `${b.media} | ${b.note_en || b.note || ''} | ${b.note_sk || b.note || ''}${b.gear ? ` | ${b.gear}` : ''}`
@@ -628,14 +589,12 @@ import Layout from '../layouts/Layout.astro';
       setVal('btsText', '');
     }
 
-    // Vykreslenie Galérie
     if (d.gallery && d.gallery.length > 0) {
       setVal('galleryText', d.gallery.join('\n'));
     } else {
       setVal('galleryText', '');
     }
 
-    // Obnovenie poradia blokov
     if (d.blockOrder && d.blockOrder.length > 0 && container) {
       d.blockOrder.forEach(blockId => {
         const sec = document.getElementById('sec-' + blockId);
@@ -649,19 +608,20 @@ import Layout from '../layouts/Layout.astro';
       statusMsg.innerText = `Loaded ${p.id}.mdx for editing`;
     }
   }
-  // 4. Start New Blank Project Button (Clears persistence)
+
   btnNewProject?.addEventListener('click', () => {
     document.getElementById('project-form').reset();
     editingSlugInput.value = "";
-    awardsList.innerHTML = '';
+    if (awardsList) awardsList.innerHTML = '';
     
-    // Clear persistence
     sessionStorage.removeItem('active_edit_slug');
     history.replaceState(null, '', window.location.pathname);
 
     const slugInput = document.getElementById('slug');
-    slugInput.value = "";
-    slugInput.disabled = false;
+    if (slugInput) {
+      slugInput.value = "";
+      slugInput.disabled = false;
+    }
 
     modeDot.className = "h-2 w-2 rounded-full bg-green-500";
     modeText.innerText = "Mode: Creating New Blank Project";
@@ -671,7 +631,6 @@ import Layout from '../layouts/Layout.astro';
     statusMsg.innerText = "Form reset. Ready to create new project.";
   });
 
-  // 5. In-Card Block Movement (▲ / ▼)
   function updateCardBadges() {
     if (!container) return;
     const cards = Array.from(container.children);
@@ -727,7 +686,6 @@ import Layout from '../layouts/Layout.astro';
 
   updateCardBadges();
 
-  // Template dropdown preset re-orderer
   document.getElementById('template')?.addEventListener('change', (e) => {
     const val = e.target.value;
     let order = ['hero', 'story', 'awards', 'teaser', 'bts', 'gallery'];
@@ -747,7 +705,7 @@ import Layout from '../layouts/Layout.astro';
     }
   });
 
-  // 6. SUBMIT HANDLER (STAYS IN EDIT MODE, NO WIPING)
+  // SUBMIT HANDLER
   document.getElementById('project-form')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     if (!submitBtn) return;
@@ -806,9 +764,8 @@ import Layout from '../layouts/Layout.astro';
       }
 
       if (result.success) {
-        // LOCK IN PERSISTENCE IMMEDIATELY
         sessionStorage.setItem('active_edit_slug', result.slug);
-        history.replaceState(null, '', `${window.location.pathname}?edit=${p.id}`);
+        history.replaceState(null, '', `${window.location.pathname}?edit=${result.slug}`);
 
         editingSlugInput.value = result.slug;
         const slugInput = document.getElementById('slug');
