@@ -123,8 +123,8 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 
     <!-- DYNAMICALLY ORDERED BLOCKS -->
     {order.map((blockName) => {
-      // 1. HERO MEDIA
-      if (blockName === 'hero' && d.heroMedia) {
+      // 1. HERO MEDIA (Zobrazí sa LEN vtedy, ak má zadanú reálnu URL!)
+      if (blockName === 'hero' && d.heroMedia && d.heroMedia.url && d.heroMedia.url.trim() !== '' && !d.heroMedia.url.includes('dQw4w9WgXcQ')) {
         return (
           <section class="mb-14">
             {d.heroMedia.type === 'video' ? (
@@ -145,7 +145,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
           </section>
         );
       }
-
+      
       // 2. STORY / DIRECTOR'S STATEMENT
       if (blockName === 'story') {
         return (

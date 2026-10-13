@@ -64,10 +64,10 @@ coverImage: "${cleanUrl(data.coverImage) || 'https://images.unsplash.com/photo-1
 
 blockOrder: [${(data.blockOrder || ['hero', 'story', 'awards', 'teaser', 'gallery', 'bts']).map(b => `'${b}'`).join(', ')}]
 
-heroMedia:
+${data.heroUrl && cleanUrl(data.heroUrl) ? `heroMedia:
   type: "${data.heroType || 'video'}"
-  url: "${cleanUrl(data.heroUrl) || 'https://www.youtube.com/watch?v=dQw4w9WgXcQ'}"
-
+  url: "${cleanUrl(data.heroUrl)}"` : ''}
+  
 ${data.teaserUrl ? `teaserVideo:
   title_en: "${data.teaserTitle_en || 'Official Festival Screening Teaser'}"
   title_sk: "${data.teaserTitle_sk || 'Oficiálny festivalový teaser'}"
