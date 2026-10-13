@@ -47,35 +47,42 @@ const order: string[] = d.blockOrder || ['hero', 'story', 'awards', 'teaser', 'g
 ---
 
 <Layout title={`${d.title_en || d.title} | Bogdan Perederii`}>
-  <article class="max-w-4xl mx-auto px-4 py-12">
-    <!-- Breadcrumb -->
-    <a href={`${base}/`} class="text-xs font-mono text-neutral-500 hover:text-amber-400 mb-8 inline-block">
-      <span class="lang-en">← Back to Portfolio</span>
-      <span class="lang-sk hidden">← Späť na portfólio</span>
-    </a>
+  <article class="max-w-4xl mx-auto px-4 py-8">
+    
+    <!-- 1. TOP NAV LEVEL: Back link + Skill tags on the exact SAME horizontal line -->
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+      <a href={`${base}/`} class="text-xs font-mono text-neutral-500 hover:text-amber-400 transition-colors inline-flex items-center gap-1">
+        <span class="lang-en">← Back to Portfolio</span>
+        <span class="lang-sk hidden">← Späť na portfólio</span>
+      </a>
 
-    <!-- BASE HEADER (Kompaktnejšie medzery pb-6 mb-8) -->
-    <header class="border-b border-neutral-800 pb-6 mb-8">
-      <div class="flex flex-wrap gap-2 mb-3">
+      <!-- Tags right across on the same line -->
+      <div class="flex flex-wrap gap-1.5">
         {d.skills.map((s: string) => (
           <span class="px-2 py-0.5 text-xs font-mono bg-neutral-900 border border-neutral-800 text-amber-400 rounded">
             {s}
           </span>
         ))}
       </div>
+    </div>
 
-      <h1 class="text-4xl md:text-5xl font-black tracking-tight mb-3">{d.title}</h1>
+    <!-- 2. BASE HEADER (Tight, compact, no empty gaps) -->
+    <header class="border-b border-neutral-800 pb-5 mb-6">
+      <h1 class="text-4xl md:text-5xl font-black tracking-tight mb-2">
+        <span class="lang-en">{d.title_en || d.title}</span>
+        <span class="lang-sk hidden">{d.title_sk || d.title}</span>
+      </h1>
       
       {(d.tagline_en || d.tagline_sk) && (
-        <p class="text-base md:text-lg text-neutral-300 leading-relaxed mb-6">
+        <p class="text-base text-neutral-300 leading-relaxed mb-4">
           <span class="lang-en">{d.tagline_en}</span>
           <span class="lang-sk hidden">{d.tagline_sk}</span>
         </p>
       )}
 
-      <!-- Šedý Meta Box so zabudovanou Spoluprácou -->
-      <div class="p-4 sm:p-5 rounded-xl bg-neutral-900/50 border border-neutral-800 text-xs font-mono text-neutral-400 space-y-3.5">
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <!-- Šedý Meta Box (ČISTÝ, BEZ DELIACEJ ČIARY) -->
+      <div class="p-4 rounded-xl bg-neutral-900/50 border border-neutral-800 text-xs font-mono text-neutral-400">
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
           <div>
             <span class="text-neutral-600 block text-[10px] uppercase">
               <span class="lang-en">Date:</span><span class="lang-sk hidden">Dátum:</span>
@@ -110,29 +117,29 @@ const order: string[] = d.blockOrder || ['hero', 'story', 'awards', 'teaser', 'g
               <strong class="text-neutral-200">{d.client}</strong>
             </div>
           )}
+          
+          {/* Spolupracovníci priamo vnútri bez deliacej čiary */}
+          {d.collaborators && d.collaborators.length > 0 && (
+            <div class="col-span-2 sm:col-span-4 flex flex-wrap items-baseline gap-x-2 pt-0.5">
+              <span class="text-neutral-600 text-[10px] uppercase tracking-wider">
+                <span class="lang-en">Collaborators:</span>
+                <span class="lang-sk hidden">Spolupráca:</span>
+              </span>
+              <span class="text-neutral-300 font-medium">
+                {d.collaborators.join(' • ')}
+              </span>
+            </div>
+          )}
         </div>
-
-        {/* Spolupráca presunutá priamo do šedého boxu */}
-        {d.collaborators && d.collaborators.length > 0 && (
-          <div class="pt-3 border-t border-neutral-800/80 flex flex-wrap items-baseline gap-x-2 text-xs">
-            <span class="text-neutral-600 text-[10px] uppercase tracking-wider">
-              <span class="lang-en">Collaborators:</span>
-              <span class="lang-sk hidden">Spolupráca:</span>
-            </span>
-            <span class="text-neutral-300 font-medium">
-              {d.collaborators.join(' • ')}
-            </span>
-          </div>
-        )}
       </div>
     </header>
 
-    <!-- DYNAMICALLY ORDERED BLOCKS (Kompaktnejšie rozostupy pb-8 mb-8) -->
+    <!-- 3. DYNAMICALLY ORDERED BLOCKS (Kompaktné vertikálne medzery) -->
     {order.map((blockName) => {
       // 1. HERO MEDIA
       if (blockName === 'hero' && d.heroMedia && d.heroMedia.url && d.heroMedia.url.trim() !== '' && !d.heroMedia.url.includes('dQw4w9WgXcQ')) {
         return (
-          <section class="border-b border-neutral-800 pb-8 mb-8">
+          <section class="border-b border-neutral-800 pb-6 mb-6">
             {d.heroMedia.type === 'video' ? (
               <div class="aspect-video w-full rounded-2xl overflow-hidden bg-neutral-900 border border-neutral-800 shadow-2xl">
                 <iframe 
@@ -156,7 +163,7 @@ const order: string[] = d.blockOrder || ['hero', 'story', 'awards', 'teaser', 'g
       const hasStory = Boolean(d.story_en?.trim() || d.story_sk?.trim() || (entry.body && entry.body.trim().length > 30));
       if (blockName === 'story' && hasStory) {
         return (
-          <section class="border-b border-neutral-800 pb-8 mb-8">
+          <section class="border-b border-neutral-800 pb-6 mb-6">
             {d.story_en && (
               <div class="lang-en prose prose-invert prose-neutral max-w-none text-neutral-300 leading-relaxed whitespace-pre-line">
                 {d.story_en}
@@ -177,12 +184,12 @@ const order: string[] = d.blockOrder || ['hero', 'story', 'awards', 'teaser', 'g
       // 3. AWARDS & LAURELS
       if (blockName === 'awards' && d.awards && d.awards.length > 0) {
         return (
-          <section class="border-b border-neutral-800 pb-8 mb-8">
-            <h2 class="text-xs font-mono uppercase tracking-widest text-amber-500 mb-5">
+          <section class="border-b border-neutral-800 pb-6 mb-6">
+            <h2 class="text-xs font-mono uppercase tracking-widest text-amber-500 mb-4">
               <span class="lang-en">Awards & Festival Selections</span>
               <span class="lang-sk hidden">Ocenenia a festivalové výbery</span>
             </h2>
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5 items-start">
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 items-start">
               {d.awards.map((a: any) => {
                 const textToCheck = `${a.award_en || ''} ${a.award_sk || ''} ${a.award || ''}`.toLowerCase();
                 const isPrize = textToCheck.includes('award') || 
@@ -193,26 +200,26 @@ const order: string[] = d.blockOrder || ['hero', 'story', 'awards', 'teaser', 'g
                                 textToCheck.includes('víťaz');
 
                 return (
-                  <div class="p-5 rounded-2xl border border-neutral-800 bg-neutral-900/40 hover:border-neutral-700 transition-all flex flex-col justify-between h-full">
+                  <div class="p-4 rounded-xl border border-neutral-800 bg-neutral-900/40 hover:border-neutral-700 transition-all flex flex-col justify-between h-full">
                     <div class="text-center">
-                      <span class="text-2xl mb-2 inline-block">
+                      <span class="text-2xl mb-1.5 inline-block">
                         {isPrize ? '🏆' : '🌿'}
                       </span>
                       <span class="text-[10px] font-mono uppercase tracking-wider text-amber-400 font-bold block mb-1">
                         <span class="lang-en">{a.award_en || a.award}</span>
                         <span class="lang-sk hidden">{a.award_sk || a.award}</span>
                       </span>
-                      <h4 class="text-sm font-bold text-neutral-100 leading-snug">{a.festival}</h4>
-                      <span class="text-xs font-mono text-neutral-500 mt-1 block">({a.year})</span>
+                      <h4 class="text-xs font-bold text-neutral-100 leading-snug">{a.festival}</h4>
+                      <span class="text-xs font-mono text-neutral-500 mt-0.5 block">({a.year})</span>
                     </div>
 
                     {a.laurelImage && (
-                      <div class="mt-4 pt-4 border-t border-neutral-800/80 flex items-center justify-center min-h-[110px]">
+                      <div class="mt-3 pt-3 border-t border-neutral-800/80 flex items-center justify-center min-h-[100px]">
                         <a href={a.laurelImage} target="_blank" rel="noopener noreferrer" class="group block" title="Open image">
                           <img 
                             src={a.laurelImage} 
                             alt={`${a.festival} Laurel/Diploma`} 
-                            class="max-h-28 w-auto max-w-full object-contain rounded filter drop-shadow group-hover:scale-105 transition-transform duration-300" 
+                            class="max-h-24 w-auto max-w-full object-contain rounded filter drop-shadow group-hover:scale-105 transition-transform duration-300" 
                             loading="lazy"
                           />
                         </a>
@@ -229,8 +236,8 @@ const order: string[] = d.blockOrder || ['hero', 'story', 'awards', 'teaser', 'g
       // 4. TEASER TRAILER
       if (blockName === 'teaser' && d.teaserVideo && d.teaserVideo.url && d.teaserVideo.url.trim() !== '') {
         return (
-          <section class="border-b border-neutral-800 pb-8 mb-8">
-            <div class="flex items-center gap-2 mb-3">
+          <section class="border-b border-neutral-800 pb-6 mb-6">
+            <div class="flex items-center gap-2 mb-2.5">
               <span class="text-amber-500 text-sm">▶</span>
               <h2 class="text-xs font-mono uppercase tracking-widest text-neutral-300">
                 <span class="lang-en">{d.teaserVideo.title_en}</span>
@@ -256,11 +263,11 @@ const order: string[] = d.blockOrder || ['hero', 'story', 'awards', 'teaser', 'g
         );
       }
 
-      // 5. GALLERY (Kompaktnejšie odsadenie mb-4)
+      // 5. GALLERY (Priame napojenie hneď pod hlavičku)
       if (blockName === 'gallery' && d.gallery && d.gallery.length > 0) {
         return (
-          <section class="border-b border-neutral-800 pb-8 mb-8">
-            <h2 class="text-xs font-mono uppercase tracking-widest text-neutral-500 mb-4">
+          <section class="border-b border-neutral-800 pb-6 mb-6">
+            <h2 class="text-xs font-mono uppercase tracking-widest text-neutral-500 mb-3">
               <span class="lang-en">Gallery / Stills</span>
               <span class="lang-sk hidden">Galéria záberov</span>
             </h2>
@@ -279,15 +286,15 @@ const order: string[] = d.blockOrder || ['hero', 'story', 'awards', 'teaser', 'g
       const hasBts = Boolean((d.gearList && d.gearList.length > 0) || (d.bts && d.bts.length > 0));
       if (blockName === 'bts' && hasBts) {
         return (
-          <section class="border-b border-neutral-800 pb-8 mb-8">
-            <h2 class="text-xs font-mono uppercase tracking-widest text-neutral-500 mb-5">
+          <section class="border-b border-neutral-800 pb-6 mb-6">
+            <h2 class="text-xs font-mono uppercase tracking-widest text-neutral-500 mb-4">
               <span class="lang-en">Behind The Scenes & Tech Breakdown</span>
               <span class="lang-sk hidden">Zákulisie & Technické vybavenie</span>
             </h2>
             
             {d.gearList && d.gearList.length > 0 && (
-              <div class="mb-6 p-4 rounded-xl border border-neutral-800 bg-neutral-900/30">
-                <h3 class="text-xs font-mono uppercase tracking-widest text-amber-500 mb-2.5 flex items-center gap-2">
+              <div class="mb-5 p-4 rounded-xl border border-neutral-800 bg-neutral-900/30">
+                <h3 class="text-xs font-mono uppercase tracking-widest text-amber-500 mb-2 flex items-center gap-2">
                   <span>⚙️</span> 
                   <span class="lang-en">Production Gear Package</span>
                   <span class="lang-sk hidden">Použitá technika</span>
@@ -303,19 +310,19 @@ const order: string[] = d.blockOrder || ['hero', 'story', 'awards', 'teaser', 'g
             )}
 
             {d.bts && d.bts.length > 0 && (
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {d.bts.map((item: any) => (
                   <div class="border border-neutral-800 rounded-xl overflow-hidden bg-neutral-900/40">
                     <div class="aspect-video overflow-hidden bg-neutral-900">
                       <img src={item.media} alt="BTS" class="w-full h-full object-cover" loading="lazy" />
                     </div>
-                    <div class="p-4 space-y-2">
-                      <p class="text-sm text-neutral-300 leading-snug">
+                    <div class="p-3.5 space-y-1.5">
+                      <p class="text-xs text-neutral-300 leading-snug">
                         <span class="lang-en">{item.note_en}</span>
                         <span class="lang-sk hidden">{item.note_sk}</span>
                       </p>
                       {item.gear && (
-                        <div class="pt-2 border-t border-neutral-800 flex items-center gap-1.5 text-xs font-mono text-neutral-400">
+                        <div class="pt-1.5 border-t border-neutral-800 flex items-center gap-1.5 text-[11px] font-mono text-neutral-400">
                           <span class="text-amber-500 font-bold">⚙️ Gear:</span>
                           <span>{item.gear}</span>
                         </div>
@@ -335,7 +342,7 @@ const order: string[] = d.blockOrder || ['hero', 'story', 'awards', 'teaser', 'g
     <!-- BLOCK 5: AUTOMATIC RELATED PROJECTS -->
     {relatedProjects.length > 0 && (
       <section class="pt-2">
-        <div class="flex items-center justify-between mb-5">
+        <div class="flex items-center justify-between mb-4">
           <h2 class="text-xs font-mono uppercase tracking-widest text-neutral-400">
             <span class="lang-en">Related Projects</span>
             <span class="lang-sk hidden">Súvisiace projekty</span>
