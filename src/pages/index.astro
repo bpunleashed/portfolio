@@ -3,8 +3,47 @@ import Layout from '../layouts/Layout.astro';
 import ProjectCard from '../components/ProjectCard.astro';
 import { getCollection } from 'astro:content';
 
-// 1. Načítanie všetkých projektov z content kolekcie
-const projects: any[] = await getCollection('projects');
+// Pomocná funkcia: inteligentne prepočíta textový dátum (napr. "2026", "2024 - 2025", "Máj 2025") na časovú pečiatku
+function parseProjectDate(dateStr: string): number {
+  if (!dateStr) return 0;
+
+  // 1. Ak je to štandardný ISO dátum (napr. 2026-05-12)
+  const parsed = Date.parse(dateStr);
+  if (!isNaN(parsed)) return parsed;
+
+  // 2. Ak ide o rok alebo rozsah rokov ("2024 - 2025") -> vezme najnovší rok (2025)
+  const years = dateStr.match(/\b(20\d\d|19\d\d)\b/g);
+  if (years && years.length > 0) {
+    const maxYear = Math.max(...years.map(Number));
+    const lower = dateStr.toLowerCase();
+    
+    // Zohľadnenie mesiaca v slovenčine aj angličtine, ak je uvedený
+    const months: [string, number][] = [
+      ['jan', 1], ['feb', 2], ['mar', 3], ['marec', 3],
+      ['apr', 4], ['apríl', 4], ['máj', 5], ['may', 5],
+      ['jún', 6], ['jun', 6], ['júl', 7], ['jul', 7],
+      ['aug', 8], ['sep', 9], ['okt', 10], ['oct', 10],
+      ['nov', 11], ['dec', 12]
+    ];
+
+    let month = 1;
+    for (const [mName, mNum] of months) {
+      if (lower.includes(mName)) {
+        month = mNum;
+        break;
+      }
+    }
+    return new Date(maxYear, month - 1, 1).getTime();
+  }
+
+  return 0;
+}
+
+// 1. Načítanie projektov a CHRONOLOGICKÉ ZORADENIE (najnovšie hore)
+const rawProjects: any[] = await getCollection('projects');
+const projects: any[] = rawProjects.sort((a, b) => {
+  return parseProjectDate(b.data.date) - parseProjectDate(a.data.date);
+});
 
 // 2. Inteligentné zjednotenie tagov (nerozdvojuje Stop-Motion a Stop-motion)
 const skillRegistry: Record<string, string> = {};
@@ -54,7 +93,7 @@ const allSkills: string[] = Object.values(skillRegistry);
       </div>
     </section>
 
-    <!-- Grid kariet projektov (otvára projekt v novom okne) -->
+    <!-- Grid kariet projektov (zoradený od najnovších) -->
     <section class="grid grid-cols-1 md:grid-cols-2 gap-8" id="projects-grid">
       {projects.map((project: any) => (
         <ProjectCard project={project} />
@@ -69,7 +108,6 @@ const allSkills: string[] = Object.values(skillRegistry);
   const cards = document.querySelectorAll('.project-card');
 
   function applyFilter(filter) {
-    // 1. Vizuálna zmena aktívneho tlačidla
     buttons.forEach(b => {
       b.classList.remove('bg-amber-500', 'text-black', 'font-bold');
       b.classList.add('bg-neutral-900', 'text-neutral-300');
@@ -84,7 +122,6 @@ const allSkills: string[] = Object.values(skillRegistry);
       activeBtn.classList.add('bg-amber-500', 'text-black', 'font-bold');
     }
 
-    // 2. Filtrovanie kariet (case-insensitive)
     cards.forEach(card => {
       const skills = (card.getAttribute('data-skills') || '').toLowerCase().split('|');
       if (filter.toLowerCase() === 'all' || skills.includes(filter.toLowerCase())) {
@@ -95,7 +132,6 @@ const allSkills: string[] = Object.values(skillRegistry);
     });
   }
 
-  // Kliknutie na filter tlačidlá priamo na stránke
   buttons.forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.preventDefault();
@@ -104,7 +140,6 @@ const allSkills: string[] = Object.values(skillRegistry);
     });
   });
 
-  // Reakcia na prichádzajúce URL parametre (napr. z About stránky ?skill=Stop-Motion)
   const urlParams = new URLSearchParams(window.location.search);
   const targetSkill = urlParams.get('skill') || urlParams.get('filter');
 
