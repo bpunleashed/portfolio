@@ -136,26 +136,19 @@ const order: string[] = d.blockOrder || ['hero', 'story', 'awards', 'teaser', 'g
 
     <!-- 3. DYNAMICALLY ORDERED BLOCKS (Kompaktné vertikálne medzery) -->
     {order.map((blockName) => {
-      // 1. HERO MEDIA (Smart Fallback: Ak chýba video, použije coverImage. Sám deteguje typ.)
+     // 1. HERO MEDIA
       if (blockName === 'hero') {
-        // Zisti, akú URL použiť
-        let mediaUrl = '';
-        if (d.heroMedia && d.heroMedia.url && d.heroMedia.url.trim() !== '' && !d.heroMedia.url.includes('dQw4w9WgXcQ')) {
-          mediaUrl = d.heroMedia.url;
-        } else if (d.coverImage && d.coverImage.trim() !== '') {
-          mediaUrl = d.coverImage; // Fallback na malý obrázok z karty
-        }
+        const hasHeroUrl = d.heroMedia && d.heroMedia.url && d.heroMedia.url.trim() !== '' && !d.heroMedia.url.includes('dQw4w9WgXcQ');
+        const heroUrl = hasHeroUrl ? d.heroMedia.url : d.coverImage;
+        const isVideo = hasHeroUrl && d.heroMedia.type === 'video';
 
-        if (mediaUrl) {
-          // Detekcia: Je to video alebo fotka?
-          const isVideo = mediaUrl.includes('youtube.com') || mediaUrl.includes('youtu.be') || mediaUrl.includes('vimeo.com');
-
+        if (heroUrl) {
           return (
-            <section class="border-b border-neutral-800 pb-6 mb-6">
+            <section class="border-b border-neutral-800 pb-8 mb-8">
               {isVideo ? (
-                <div class="aspect-video w-full rounded-2xl overflow-hidden bg-neutral-900 border border-neutral-800 shadow-2xl flex justify-center items-center">
+                <div class="aspect-video w-full rounded-2xl overflow-hidden bg-neutral-900 flex justify-center items-center">
                   <iframe 
-                    src={getEmbedUrl(mediaUrl)} 
+                    src={getEmbedUrl(heroUrl)} 
                     title={d.title_en || d.title} 
                     class="w-full h-full" 
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
@@ -163,9 +156,9 @@ const order: string[] = d.blockOrder || ['hero', 'story', 'awards', 'teaser', 'g
                   />
                 </div>
               ) : (
-                <div class="rounded-2xl overflow-hidden border border-neutral-800 shadow-2xl bg-neutral-900 flex justify-center items-center">
+                <div class="rounded-2xl overflow-hidden bg-neutral-900 flex justify-center items-center">
                   <img 
-                    src={mediaUrl.startsWith('http') ? mediaUrl : `${base}${mediaUrl}`} 
+                    src={heroUrl.startsWith('http') ? heroUrl : `${base}${heroUrl.startsWith('/') ? '' : '/'}${heroUrl}`} 
                     alt={d.title_en || d.title} 
                     class="w-full h-auto max-h-[600px] object-contain" 
                   />
@@ -175,29 +168,6 @@ const order: string[] = d.blockOrder || ['hero', 'story', 'awards', 'teaser', 'g
           );
         }
       }
-
-      // 2. STORY / STATEMENT
-      const hasStory = Boolean(d.story_en?.trim() || d.story_sk?.trim() || (entry.body && entry.body.trim().length > 30));
-      if (blockName === 'story' && hasStory) {
-        return (
-          <section class="border-b border-neutral-800 pb-6 mb-6">
-            {d.story_en && (
-              <div class="lang-en prose prose-invert prose-neutral max-w-none text-neutral-300 leading-relaxed whitespace-pre-line">
-                {d.story_en}
-              </div>
-            )}
-            {d.story_sk && (
-              <div class="lang-sk hidden prose prose-invert prose-neutral max-w-none text-neutral-300 leading-relaxed whitespace-pre-line">
-                {d.story_sk}
-              </div>
-            )}
-            <div class="prose prose-invert prose-neutral max-w-none text-neutral-300 leading-relaxed">
-              <Content />
-            </div>
-          </section>
-        );
-      }
-
       // 3. AWARDS & LAURELS
       if (blockName === 'awards' && d.awards && d.awards.length > 0) {
         return (
