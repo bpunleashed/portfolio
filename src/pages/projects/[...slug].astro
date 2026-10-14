@@ -155,11 +155,15 @@ const order: string[] = d.blockOrder || ['hero', 'story', 'awards', 'teaser', 'g
                     allowfullscreen
                   />
                 </div>
-              ) : (
-               <img 
-                src={heroUrl.startsWith('http') ? heroUrl : `${base}${heroUrl.startsWith('/') ? '' : '/'}${heroUrl}`} 
-                alt={d.title_en || d.title} 
-                class="w-full h-auto max-h-[600px] object-contain" 
+             ) : (
+                <div class="rounded-2xl overflow-hidden shadow-2xl bg-neutral-900 border border-neutral-800 w-full relative" style="max-height: 70vh;">
+                  <img 
+                    src={heroUrl.startsWith('http') ? heroUrl : `${base}${heroUrl.startsWith('/') ? '' : '/'}${heroUrl}`} 
+                    alt={d.title_en || d.title} 
+                    class="w-full h-full object-cover object-center block"
+                  />
+                </div>
+              )}
               />
               )}
             </section>
