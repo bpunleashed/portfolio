@@ -3,7 +3,6 @@
 
 Start the local server:
 
-Bash
 npm run dev
 
 2. Your Local Website Links (Browser)
