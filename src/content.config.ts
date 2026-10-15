@@ -4,7 +4,6 @@ import { glob } from 'astro/loaders';
 const projects = defineCollection({
   loader: glob({ pattern: "**/*.{md,mdx}", base: "./src/content/projects" }),
   schema: z.object({
-    // Resilient Titles (Accepts title_en, title_sk, OR standard title)
     title: z.string().optional(),
     title_en: z.string().optional(),
     title_sk: z.string().optional(),
@@ -30,7 +29,7 @@ const projects = defineCollection({
       type: z.enum(['video', 'photo']).default('video'),
       url: z.string(),
       url2: z.string().optional(), // Druhé video
-      layout: z.enum(['stacked', 'grid']).default('stacked'), // Rozloženie
+      layout: z.enum(['stacked', 'grid']).default('grid'), // Rozloženie (grid = vedľa seba)
     }).optional(),
 
     teaserVideo: z.object({
@@ -46,7 +45,6 @@ const projects = defineCollection({
     gearList: z.array(z.string()).default([]),
     gallery: z.array(z.string()).default([]),
 
-    // Resilient Awards (Accepts award_en, award_sk, OR standard award)
     awards: z.array(z.object({
       festival: z.string(),
       award_en: z.string().optional(),
@@ -56,7 +54,6 @@ const projects = defineCollection({
       laurelImage: z.string().optional(),
     })).default([]),
 
-    // Resilient BTS (Accepts note_en, note_sk, OR standard note)
     bts: z.array(z.object({
       media: z.string(),
       note_en: z.string().optional(),

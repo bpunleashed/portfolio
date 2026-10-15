@@ -18,7 +18,6 @@ const d = entry.data;
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 
-// Automatic Related Projects by Skill Overlap
 const currentSkills: string[] = d.skills || [];
 const relatedProjects = allProjects
   .filter((p: any) => p.id !== entry.id)
@@ -49,24 +48,18 @@ const order: string[] = d.blockOrder || ['hero', 'story', 'awards', 'teaser', 'g
 <Layout title={`${d.title_en || d.title} | Bogdan Perederii`}>
   <article class="max-w-4xl mx-auto px-4 py-8">
     
-    <!-- 1. TOP NAV LEVEL: Back link + Skill tags on the exact SAME horizontal line -->
     <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
       <a href={`${base}/`} class="text-xs font-mono text-neutral-500 hover:text-amber-400 transition-colors inline-flex items-center gap-1">
         <span class="lang-en">← Back to Portfolio</span>
         <span class="lang-sk hidden">← Späť na portfólio</span>
       </a>
-
-      <!-- Tags right across on the same line -->
       <div class="flex flex-wrap gap-1.5">
         {d.skills.map((s: string) => (
-          <span class="px-2 py-0.5 text-xs font-mono bg-neutral-900 border border-neutral-800 text-amber-400 rounded">
-            {s}
-          </span>
+          <span class="px-2 py-0.5 text-xs font-mono bg-neutral-900 border border-neutral-800 text-amber-400 rounded">{s}</span>
         ))}
       </div>
     </div>
 
-    <!-- 2. BASE HEADER (Tight, compact, no empty gaps) -->
     <header class="border-b border-neutral-800 pb-5 mb-6">
       <h1 class="text-4xl md:text-5xl font-black tracking-tight mb-2">
         <span class="lang-en">{d.title_en || d.title}</span>
@@ -80,135 +73,97 @@ const order: string[] = d.blockOrder || ['hero', 'story', 'awards', 'teaser', 'g
         </p>
       )}
 
-      <!-- Šedý Meta Box (ČISTÝ, BEZ DELIACEJ ČIARY) -->
-      <div class="p-4 rounded-xl bg-neutral-900/50 border border-neutral-800 text-xs font-mono text-neutral-400">
+      <div class="p-4 sm:p-5 rounded-xl bg-neutral-900/50 border border-neutral-800 text-xs font-mono text-neutral-400">
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
-          <div>
-            <span class="text-neutral-600 block text-[10px] uppercase">
-              <span class="lang-en">Date:</span><span class="lang-sk hidden">Dátum:</span>
-            </span> 
-            {d.date}
-          </div>
-          {d.duration && (
-            <div>
-              <span class="text-neutral-600 block text-[10px] uppercase">
-                <span class="lang-en">Runtime:</span><span class="lang-sk hidden">Dĺžka:</span>
-              </span> 
-              <strong class="text-amber-400">{d.duration}</strong>
-            </div>
-          )}
-          <div>
-            <span class="text-neutral-600 block text-[10px] uppercase">
-              <span class="lang-en">Location:</span><span class="lang-sk hidden">Miesto:</span>
-            </span> 
-            {d.place}
-          </div>
-          {d.venue && (
-            <div>
-              <span class="text-neutral-600 block text-[10px] uppercase">Venue:</span> 
-              {d.venue}
-            </div>
-          )}
-          {d.client && (
-            <div>
-              <span class="text-neutral-600 block text-[10px] uppercase">
-                <span class="lang-en">Client:</span><span class="lang-sk hidden">Klient:</span>
-              </span> 
-              <strong class="text-neutral-200">{d.client}</strong>
-            </div>
-          )}
+          <div><span class="text-neutral-600 block text-[10px] uppercase"><span class="lang-en">Date:</span><span class="lang-sk hidden">Dátum:</span></span> {d.date}</div>
+          {d.duration && <div><span class="text-neutral-600 block text-[10px] uppercase"><span class="lang-en">Runtime:</span><span class="lang-sk hidden">Dĺžka:</span></span> <strong class="text-amber-400">{d.duration}</strong></div>}
+          <div><span class="text-neutral-600 block text-[10px] uppercase"><span class="lang-en">Location:</span><span class="lang-sk hidden">Miesto:</span></span> {d.place}</div>
+          {d.venue && <div><span class="text-neutral-600 block text-[10px] uppercase">Venue:</span> {d.venue}</div>}
+          {d.client && <div><span class="text-neutral-600 block text-[10px] uppercase"><span class="lang-en">Client:</span><span class="lang-sk hidden">Klient:</span></span> <strong class="text-neutral-200">{d.client}</strong></div>}
           
-          {/* Spolupracovníci priamo vnútri bez deliacej čiary */}
           {d.collaborators && d.collaborators.length > 0 && (
             <div class="col-span-2 sm:col-span-4 flex flex-wrap items-baseline gap-x-2 pt-0.5">
-              <span class="text-neutral-600 text-[10px] uppercase tracking-wider">
-                <span class="lang-en">Collaborators:</span>
-                <span class="lang-sk hidden">Spolupráca:</span>
-              </span>
-              <span class="text-neutral-300 font-medium">
-                {d.collaborators.join(' • ')}
-              </span>
+              <span class="text-neutral-600 text-[10px] uppercase tracking-wider"><span class="lang-en">Collaborators:</span><span class="lang-sk hidden">Spolupráca:</span></span>
+              <span class="text-neutral-300 font-medium">{d.collaborators.join(' • ')}</span>
             </div>
           )}
         </div>
       </div>
     </header>
 
-    <!-- 3. DYNAMICALLY ORDERED BLOCKS (Kompaktné vertikálne medzery) -->
     {order.map((blockName) => {
-     // 1. HERO MEDIA
+      // 1. HERO MEDIA (Single, Dual Video, or Photo)
       if (blockName === 'hero') {
         const hasHeroUrl = d.heroMedia && d.heroMedia.url && d.heroMedia.url.trim() !== '' && !d.heroMedia.url.includes('dQw4w9WgXcQ');
         const heroUrl = hasHeroUrl ? d.heroMedia.url : d.coverImage;
         const isVideo = hasHeroUrl && d.heroMedia.type === 'video';
+        
+        const hasSecondVideo = d.heroMedia && d.heroMedia.url2 && d.heroMedia.url2.trim() !== '';
+        const layoutClass = d.heroMedia?.layout === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 gap-6' : 'space-y-6';
 
         if (heroUrl) {
           return (
-            <section class="border-b border-neutral-800 pb-8 mb-8">
-              {isVideo ? (
-                <div class="aspect-video w-full rounded-2xl overflow-hidden bg-neutral-900 flex justify-center items-center">
-                  <iframe 
-                    src={getEmbedUrl(heroUrl)} 
-                    title={d.title_en || d.title} 
-                    class="w-full h-full" 
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                    allowfullscreen
-                  />
+            <section class="border-b border-neutral-800 pb-6 mb-6">
+              {hasSecondVideo ? (
+                <div class={layoutClass}>
+                  <div class="aspect-video w-full rounded-2xl overflow-hidden bg-neutral-900 shadow-2xl flex justify-center items-center">
+                    <iframe src={getEmbedUrl(heroUrl)} title={d.title_en || d.title} class="w-full h-full" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen />
+                  </div>
+                  <div class="aspect-video w-full rounded-2xl overflow-hidden bg-neutral-900 shadow-2xl flex justify-center items-center">
+                    <iframe src={getEmbedUrl(d.heroMedia.url2)} title="Second Video" class="w-full h-full" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen />
+                  </div>
                 </div>
-             ) : (
-                <div class="w-full rounded-2xl overflow-hidden bg-neutral-900 shadow-2xl flex justify-center bg-black">
-                  <img 
-                    src={heroUrl.startsWith('http') ? heroUrl : `${base}${heroUrl.startsWith('/') ? '' : '/'}${heroUrl}`} 
-                    alt={d.title_en || d.title} 
-                    class="w-full max-h-[75vh] object-contain" 
-                  />
-                </div>
+              ) : (
+                isVideo ? (
+                  <div class="aspect-video w-full rounded-2xl overflow-hidden bg-neutral-900 shadow-2xl flex justify-center items-center">
+                    <iframe src={getEmbedUrl(heroUrl)} title={d.title_en || d.title} class="w-full h-full" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen />
+                  </div>
+                ) : (
+                  <div class="w-full rounded-2xl overflow-hidden shadow-2xl flex justify-center bg-black">
+                    <img src={heroUrl.startsWith('http') ? heroUrl : `${base}${heroUrl.startsWith('/') ? '' : '/'}${heroUrl}`} alt={d.title_en || d.title} class="w-full max-h-[75vh] object-contain" />
+                  </div>
+                )
               )}
             </section>
           );
         }
       }
-      // 3. AWARDS & LAURELS
+
+      // 2. STORY
+      const hasStory = Boolean(d.story_en?.trim() || d.story_sk?.trim() || (entry.body && entry.body.trim().length > 30));
+      if (blockName === 'story' && hasStory) {
+        return (
+          <section class="border-b border-neutral-800 pb-6 mb-6">
+            {d.story_en && <div class="lang-en prose prose-invert prose-neutral max-w-none text-neutral-300 leading-relaxed whitespace-pre-line">{d.story_en}</div>}
+            {d.story_sk && <div class="lang-sk hidden prose prose-invert prose-neutral max-w-none text-neutral-300 leading-relaxed whitespace-pre-line">{d.story_sk}</div>}
+            <div class="prose prose-invert prose-neutral max-w-none text-neutral-300 leading-relaxed"><Content /></div>
+          </section>
+        );
+      }
+
+      // 3. AWARDS
       if (blockName === 'awards' && d.awards && d.awards.length > 0) {
         return (
           <section class="border-b border-neutral-800 pb-6 mb-6">
-            <h2 class="text-xs font-mono uppercase tracking-widest text-amber-500 mb-4">
-              <span class="lang-en">Awards & Festival Selections</span>
-              <span class="lang-sk hidden">Ocenenia a festivalové výbery</span>
-            </h2>
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 items-start">
+            <h2 class="text-xs font-mono uppercase tracking-widest text-amber-500 mb-4"><span class="lang-en">Awards & Festival Selections</span><span class="lang-sk hidden">Ocenenia a festivalové výbery</span></h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5 items-start">
               {d.awards.map((a: any) => {
                 const textToCheck = `${a.award_en || ''} ${a.award_sk || ''} ${a.award || ''}`.toLowerCase();
-                const isPrize = textToCheck.includes('award') || 
-                                textToCheck.includes('place') || 
-                                textToCheck.includes('cena') || 
-                                textToCheck.includes('miesto') || 
-                                textToCheck.includes('winner') || 
-                                textToCheck.includes('víťaz');
-
+                const isPrize = textToCheck.includes('award') || textToCheck.includes('place') || textToCheck.includes('cena') || textToCheck.includes('miesto') || textToCheck.includes('winner') || textToCheck.includes('víťaz');
                 return (
                   <div class="p-4 rounded-xl border border-neutral-800 bg-neutral-900/40 hover:border-neutral-700 transition-all flex flex-col justify-between h-full">
                     <div class="text-center">
-                      <span class="text-2xl mb-1.5 inline-block">
-                        {isPrize ? '🏆' : '🌿'}
-                      </span>
+                      <span class="text-2xl mb-1.5 inline-block">{isPrize ? '🏆' : '🌿'}</span>
                       <span class="text-[10px] font-mono uppercase tracking-wider text-amber-400 font-bold block mb-1">
-                        <span class="lang-en">{a.award_en || a.award}</span>
-                        <span class="lang-sk hidden">{a.award_sk || a.award}</span>
+                        <span class="lang-en">{a.award_en || a.award}</span><span class="lang-sk hidden">{a.award_sk || a.award}</span>
                       </span>
                       <h4 class="text-xs font-bold text-neutral-100 leading-snug">{a.festival}</h4>
                       <span class="text-xs font-mono text-neutral-500 mt-0.5 block">({a.year})</span>
                     </div>
-
                     {a.laurelImage && (
                       <div class="mt-3 pt-3 border-t border-neutral-800/80 flex items-center justify-center min-h-[100px]">
                         <a href={a.laurelImage} target="_blank" rel="noopener noreferrer" class="group block" title="Open image">
-                          <img 
-                            src={a.laurelImage} 
-                            alt={`${a.festival} Laurel/Diploma`} 
-                            class="max-h-24 w-auto max-w-full object-contain rounded filter drop-shadow group-hover:scale-105 transition-transform duration-300" 
-                            loading="lazy"
-                          />
+                          <img src={a.laurelImage} alt={`${a.festival} Laurel/Diploma`} class="max-h-24 w-auto max-w-full object-contain rounded filter drop-shadow group-hover:scale-105 transition-transform duration-300" loading="lazy" />
                         </a>
                       </div>
                     )}
@@ -226,38 +181,23 @@ const order: string[] = d.blockOrder || ['hero', 'story', 'awards', 'teaser', 'g
           <section class="border-b border-neutral-800 pb-6 mb-6">
             <div class="flex items-center gap-2 mb-2.5">
               <span class="text-amber-500 text-sm">▶</span>
-              <h2 class="text-xs font-mono uppercase tracking-widest text-neutral-300">
-                <span class="lang-en">{d.teaserVideo.title_en}</span>
-                <span class="lang-sk hidden">{d.teaserVideo.title_sk}</span>
-              </h2>
+              <h2 class="text-xs font-mono uppercase tracking-widest text-neutral-300"><span class="lang-en">{d.teaserVideo.title_en}</span><span class="lang-sk hidden">{d.teaserVideo.title_sk}</span></h2>
             </div>
             <div class="aspect-video w-full rounded-2xl overflow-hidden bg-neutral-900 border border-neutral-800 shadow-2xl">
-              <iframe 
-                src={getEmbedUrl(d.teaserVideo.url)} 
-                title={d.teaserVideo.title_en} 
-                class="w-full h-full" 
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                allowfullscreen
-              />
+              <iframe src={getEmbedUrl(d.teaserVideo.url)} title={d.teaserVideo.title_en} class="w-full h-full" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen />
             </div>
             {(d.teaserVideo.caption_en || d.teaserVideo.caption_sk) && (
-              <p class="text-xs font-mono text-neutral-500 mt-2 text-center">
-                <span class="lang-en">{d.teaserVideo.caption_en}</span>
-                <span class="lang-sk hidden">{d.teaserVideo.caption_sk}</span>
-              </p>
+              <p class="text-xs font-mono text-neutral-500 mt-2 text-center"><span class="lang-en">{d.teaserVideo.caption_en}</span><span class="lang-sk hidden">{d.teaserVideo.caption_sk}</span></p>
             )}
           </section>
         );
       }
 
-      // 5. GALLERY (Priame napojenie hneď pod hlavičku)
+      // 5. GALLERY
       if (blockName === 'gallery' && d.gallery && d.gallery.length > 0) {
         return (
           <section class="border-b border-neutral-800 pb-6 mb-6">
-            <h2 class="text-xs font-mono uppercase tracking-widest text-neutral-500 mb-3">
-              <span class="lang-en">Gallery / Stills</span>
-              <span class="lang-sk hidden">Galéria záberov</span>
-            </h2>
+            <h2 class="text-xs font-mono uppercase tracking-widest text-neutral-500 mb-3"><span class="lang-en">Gallery / Stills</span><span class="lang-sk hidden">Galéria záberov</span></h2>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               {d.gallery.map((img: string, i: number) => (
                 <div class="rounded-xl overflow-hidden border border-neutral-800 bg-neutral-900 group">
@@ -269,49 +209,34 @@ const order: string[] = d.blockOrder || ['hero', 'story', 'awards', 'teaser', 'g
         );
       }
 
-      // 6. BTS & TECH BREAKDOWN
+      // 6. BTS & TECH
       const hasBts = Boolean((d.gearList && d.gearList.length > 0) || (d.bts && d.bts.length > 0));
       if (blockName === 'bts' && hasBts) {
         return (
           <section class="border-b border-neutral-800 pb-6 mb-6">
-            <h2 class="text-xs font-mono uppercase tracking-widest text-neutral-500 mb-4">
-              <span class="lang-en">Behind The Scenes & Tech Breakdown</span>
-              <span class="lang-sk hidden">Zákulisie & Technické vybavenie</span>
-            </h2>
+            <h2 class="text-xs font-mono uppercase tracking-widest text-neutral-500 mb-4"><span class="lang-en">Behind The Scenes & Tech Breakdown</span><span class="lang-sk hidden">Zákulisie & Technické vybavenie</span></h2>
             
             {d.gearList && d.gearList.length > 0 && (
               <div class="mb-5 p-4 rounded-xl border border-neutral-800 bg-neutral-900/30">
-                <h3 class="text-xs font-mono uppercase tracking-widest text-amber-500 mb-2 flex items-center gap-2">
-                  <span>⚙️</span> 
-                  <span class="lang-en">Production Gear Package</span>
-                  <span class="lang-sk hidden">Použitá technika</span>
-                </h3>
+                <h3 class="text-xs font-mono uppercase tracking-widest text-amber-500 mb-2 flex items-center gap-2"><span>⚙️</span><span class="lang-en">Production Gear Package</span><span class="lang-sk hidden">Použitá technika</span></h3>
                 <div class="flex flex-wrap gap-2">
-                  {d.gearList.map((g: string) => (
-                    <span class="px-2.5 py-1 text-xs font-mono bg-neutral-900 border border-neutral-800 text-neutral-300 rounded-md">
-                      {g}
-                    </span>
-                  ))}
+                  {d.gearList.map((g: string) => <span class="px-2.5 py-1 text-xs font-mono bg-neutral-900 border border-neutral-800 text-neutral-300 rounded-md">{g}</span>)}
                 </div>
               </div>
             )}
 
             {d.bts && d.bts.length > 0 && (
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                 {d.bts.map((item: any) => (
                   <div class="border border-neutral-800 rounded-xl overflow-hidden bg-neutral-900/40">
                     <div class="aspect-video overflow-hidden bg-neutral-900">
                       <img src={item.media} alt="BTS" class="w-full h-full object-cover" loading="lazy" />
                     </div>
                     <div class="p-3.5 space-y-1.5">
-                      <p class="text-xs text-neutral-300 leading-snug">
-                        <span class="lang-en">{item.note_en}</span>
-                        <span class="lang-sk hidden">{item.note_sk}</span>
-                      </p>
+                      <p class="text-xs text-neutral-300 leading-snug"><span class="lang-en">{item.note_en}</span><span class="lang-sk hidden">{item.note_sk}</span></p>
                       {item.gear && (
                         <div class="pt-1.5 border-t border-neutral-800 flex items-center gap-1.5 text-[11px] font-mono text-neutral-400">
-                          <span class="text-amber-500 font-bold">⚙️ Gear:</span>
-                          <span>{item.gear}</span>
+                          <span class="text-amber-500 font-bold">⚙️ Gear:</span><span>{item.gear}</span>
                         </div>
                       )}
                     </div>
@@ -326,20 +251,15 @@ const order: string[] = d.blockOrder || ['hero', 'story', 'awards', 'teaser', 'g
       return null;
     })}
 
-    <!-- BLOCK 5: AUTOMATIC RELATED PROJECTS -->
+    <!-- BLOCK 5: RELATED PROJECTS -->
     {relatedProjects.length > 0 && (
       <section class="pt-2">
-        <div class="flex items-center justify-between mb-4">
-          <h2 class="text-xs font-mono uppercase tracking-widest text-neutral-400">
-            <span class="lang-en">Related Projects</span>
-            <span class="lang-sk hidden">Súvisiace projekty</span>
-          </h2>
+        <div class="flex items-center justify-between mb-5">
+          <h2 class="text-xs font-mono uppercase tracking-widest text-neutral-400"><span class="lang-en">Related Projects</span><span class="lang-sk hidden">Súvisiace projekty</span></h2>
           <span class="text-xs font-mono text-neutral-600">Matched by shared skills</span>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {relatedProjects.map((relProject: any) => (
-            <ProjectCard project={relProject} />
-          ))}
+          {relatedProjects.map((relProject: any) => <ProjectCard project={relProject} />)}
         </div>
       </section>
     )}
