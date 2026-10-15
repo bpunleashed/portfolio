@@ -29,6 +29,8 @@ const projects = defineCollection({
     heroMedia: z.object({
       type: z.enum(['video', 'photo']).default('video'),
       url: z.string(),
+      url2: z.string().optional(), // Druhé video
+      layout: z.enum(['stacked', 'grid']).default('stacked'), // Rozloženie
     }).optional(),
 
     teaserVideo: z.object({

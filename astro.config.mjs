@@ -66,7 +66,8 @@ blockOrder: [${(data.blockOrder || ['hero', 'story', 'awards', 'teaser', 'galler
 
 ${data.heroUrl && cleanUrl(data.heroUrl) ? `heroMedia:
   type: "${data.heroType || 'video'}"
-  url: "${cleanUrl(data.heroUrl)}"` : ''}
+  url: "${cleanUrl(data.heroUrl)}"
+${data.heroUrl2 && cleanUrl(data.heroUrl2) ? `  url2: "${cleanUrl(data.heroUrl2)}"\n  layout: "${data.heroLayout || 'grid'}"` : ''}` : ''}
   
 ${data.teaserUrl ? `teaserVideo:
   title_en: "${data.teaserTitle_en || 'Official Festival Screening Teaser'}"
@@ -99,9 +100,11 @@ bts: ${btsArray.length > 0 ? '\n' + btsArray.map(b => `  - media: "${b.media}"\n
   };
 }
 
+const isProd = process.env.NODE_ENV === 'production';
+
 export default defineConfig({
   site: 'https://bpunleashed.github.io',
-  base: '/portfolio',
+  base: isProd ? '/portfolio' : '/',
   build: {
     assets: 'assets'
   },
