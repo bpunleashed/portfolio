@@ -6,7 +6,7 @@ Start the local server:
 npm run dev
 
 2. Your Local Website Links (Browser)
-http://localhost:4321/portfolio/
+http://localhost:4321
 
 3. Shutdown Command
 When you are done for the day:
