@@ -3,21 +3,17 @@ import Layout from '../layouts/Layout.astro';
 import ProjectCard from '../components/ProjectCard.astro';
 import { getCollection } from 'astro:content';
 
-// Pomocná funkcia: inteligentne prepočíta textový dátum (napr. "2026", "2024 - 2025", "Máj 2025") na časovú pečiatku
+// Pomocná funkcia: inteligentne prepočíta textový dátum na časovú pečiatku
 function parseProjectDate(dateStr: string): number {
   if (!dateStr) return 0;
-
-  // 1. Ak je to štandardný ISO dátum (napr. 2026-05-12)
   const parsed = Date.parse(dateStr);
   if (!isNaN(parsed)) return parsed;
 
-  // 2. Ak ide o rok alebo rozsah rokov ("2024 - 2025") -> vezme najnovší rok (2025)
   const years = dateStr.match(/\b(20\d\d|19\d\d)\b/g);
   if (years && years.length > 0) {
     const maxYear = Math.max(...years.map(Number));
     const lower = dateStr.toLowerCase();
     
-    // Zohľadnenie mesiaca v slovenčine aj angličtine, ak je uvedený
     const months: [string, number][] = [
       ['jan', 1], ['feb', 2], ['mar', 3], ['marec', 3],
       ['apr', 4], ['apríl', 4], ['máj', 5], ['may', 5],
@@ -35,28 +31,72 @@ function parseProjectDate(dateStr: string): number {
     }
     return new Date(maxYear, month - 1, 1).getTime();
   }
-
   return 0;
 }
 
-// 1. Načítanie projektov a CHRONOLOGICKÉ ZORADENIE (najnovšie hore)
+// 1. Načítanie projektov a chronologické zoradenie
 const rawProjects: any[] = await getCollection('projects');
 const projects: any[] = rawProjects.sort((a, b) => {
   return parseProjectDate(b.data.date) - parseProjectDate(a.data.date);
 });
 
-// 2. Inteligentné zjednotenie tagov (nerozdvojuje Stop-Motion a Stop-motion)
-const skillRegistry: Record<string, string> = {};
+// 2. Prekladový slovník zlučujúci duplicity do jedného filtra
+const skillTranslations: Record<string, { en: string; sk: string; aliases: string[] }> = {
+  'camera': { en: 'Camera (DP)', sk: 'Kamera', aliases: ['camera (dp)', 'camera', 'video recording'] },
+  'directing': { en: 'Directing', sk: 'Réžia', aliases: ['directing', 'réžia', 'rezia'] },
+  'video-editing': { en: 'Video Editing', sk: 'Strih videa', aliases: ['video editing', 'editing', 'strih videa', 'strih'] },
+  'location-sound': { en: 'Location Sound', sk: 'Lokačný zvuk', aliases: ['location sound'] },
+  'sound-design': { en: 'Sound Design', sk: 'Zvukový dizajn', aliases: ['sound design', 'sound engineering', 'zvukový dizajn'] },
+  'photography': { en: 'Photography', sk: 'Fotografia', aliases: ['photography'] },
+  'photo-editing': { en: 'Photo Editing', sk: 'Úprava fotiek', aliases: ['photo editing'] },
+  'stop-motion': { en: 'Stop-Motion', sk: 'Stop-motion', aliases: ['stop-motion', 'stop motion'] },
+  'prop-making': { en: 'Prop Making', sk: 'Výroba rekvizít', aliases: ['prop making'] },
+  'woodworking': { en: 'Woodworking', sk: 'Práca s drevom', aliases: ['woodworking', 'woodwork'] },
+  'grip': { en: 'Grip', sk: 'Grip', aliases: ['grip'] },
+  'storyboarding': { en: 'Storyboarding', sk: 'Storyboarding', aliases: ['story boarding', 'storyboarding'] },
+  'event-management': { en: 'Event Management', sk: 'Event produkcia', aliases: ['event management'] },
+  'stage-presence': { en: 'Stage Presence', sk: 'Javisková tvorba', aliases: ['stage presence'] },
+  'painting': { en: 'Painting', sk: 'Maľba', aliases: ['painting'] },
+  'sewing': { en: 'Sewing', sk: 'Šitie / Kostýmy', aliases: ['sewing'] },
+  'craft-services': { en: 'Craft Services', sk: 'Servis na pľaci', aliases: ['craft services'] }
+};
+
+// 3. Extrakcia tagov, ktoré sa reálne v projektoch nachádzajú
+const usedTagsSet = new Set<string>();
 projects.forEach((p: any) => {
   (p.data.skills || []).forEach((s: string) => {
-    const trimmed = s.trim();
-    const lower = trimmed.toLowerCase();
-    if (trimmed && !skillRegistry[lower]) {
-      skillRegistry[lower] = trimmed;
-    }
+    if (s && typeof s === 'string') usedTagsSet.add(s.trim().toLowerCase());
   });
 });
-const allSkills: string[] = Object.values(skillRegistry);
+
+// Vygenerujeme zoznam tlačidiel (zjednotené podľa slovníka + bezpečný fallback pre neznáme tagy)
+const processedKeys = new Set<string>();
+const displaySkills: { id: string; en: string; sk: string; matchAliases: string[] }[] = [];
+
+for (const [key, data] of Object.entries(skillTranslations)) {
+  const isPresent = data.aliases.some(alias => usedTagsSet.has(alias));
+  if (isPresent) {
+    displaySkills.push({
+      id: key,
+      en: data.en,
+      sk: data.sk,
+      matchAliases: data.aliases
+    });
+    data.aliases.forEach(a => processedKeys.add(a));
+  }
+}
+
+// Fallback pre prípadné tagy v databáze, ktoré by neboli v slovníku
+usedTagsSet.forEach(rawTag => {
+  if (!processedKeys.has(rawTag)) {
+    displaySkills.push({
+      id: rawTag,
+      en: rawTag.charAt(0).toUpperCase() + rawTag.slice(1),
+      sk: rawTag.charAt(0).toUpperCase() + rawTag.slice(1),
+      matchAliases: [rawTag]
+    });
+  }
+});
 ---
 
 <Layout>
@@ -73,7 +113,7 @@ const allSkills: string[] = Object.values(skillRegistry);
       </p>
     </section>
 
-    <!-- Automaticky generované filter tlačidlá -->
+    <!-- Automaticky generované filter tlačidlá s 2 jazykmi -->
     <section class="mb-10">
       <p class="text-xs font-mono uppercase tracking-wider text-neutral-500 mb-3">
         <span class="lang-en">Filter by Skill / Discipline:</span>
@@ -81,13 +121,19 @@ const allSkills: string[] = Object.values(skillRegistry);
       </p>
       
       <div class="flex flex-wrap gap-2" id="filter-buttons">
+        <!-- Tlačidlo VŠETKO -->
         <button data-filter="all" class="filter-btn active px-3.5 py-1.5 text-xs font-mono rounded bg-amber-500 text-black font-bold transition-all">
           <span class="lang-en">All</span><span class="lang-sk hidden">Všetko</span> ({projects.length})
         </button>
 
-        {allSkills.map((skill) => (
-          <button data-filter={skill} class="filter-btn px-3.5 py-1.5 text-xs font-mono rounded bg-neutral-900 border border-neutral-800 text-neutral-300 hover:border-neutral-600 transition-all">
-            {skill}
+        <!-- Dvojjazyčné tagy -->
+        {displaySkills.map((skill) => (
+          <button 
+            data-filter={skill.matchAliases.join(',')} 
+            class="filter-btn px-3.5 py-1.5 text-xs font-mono rounded bg-neutral-900 border border-neutral-800 text-neutral-300 hover:border-neutral-600 transition-all"
+          >
+            <span class="lang-en">{skill.en}</span>
+            <span class="lang-sk hidden">{skill.sk}</span>
           </button>
         ))}
       </div>
@@ -102,51 +148,68 @@ const allSkills: string[] = Object.values(skillRegistry);
   </div>
 </Layout>
 
-<!-- Klientsky filter skript s podporou ?skill= linkov z About stránky -->
+<!-- Klientsky filter skript s podporou aliasov a prepínania -->
 <script is:inline>
-  const buttons = document.querySelectorAll('.filter-btn');
-  const cards = document.querySelectorAll('.project-card');
+  function setupProjectsFilter() {
+    const buttons = document.querySelectorAll('.filter-btn');
+    const cards = document.querySelectorAll('.project-card');
 
-  function applyFilter(filter) {
-    buttons.forEach(b => {
-      b.classList.remove('bg-amber-500', 'text-black', 'font-bold');
-      b.classList.add('bg-neutral-900', 'text-neutral-300');
-    });
+    function applyFilter(filter) {
+      buttons.forEach(b => {
+        b.classList.remove('bg-amber-500', 'text-black', 'font-bold');
+        b.classList.add('bg-neutral-900', 'text-neutral-300');
+      });
 
-    const activeBtn = Array.from(buttons).find(b => 
-      (b.getAttribute('data-filter') || '').toLowerCase() === filter.toLowerCase()
-    );
+      const activeBtn = Array.from(buttons).find(b => 
+        (b.getAttribute('data-filter') || '').toLowerCase() === filter.toLowerCase()
+      );
 
-    if (activeBtn) {
-      activeBtn.classList.remove('bg-neutral-900', 'text-neutral-300');
-      activeBtn.classList.add('bg-amber-500', 'text-black', 'font-bold');
+      if (activeBtn) {
+        activeBtn.classList.remove('bg-neutral-900', 'text-neutral-300');
+        activeBtn.classList.add('bg-amber-500', 'text-black', 'font-bold');
+      }
+
+      // Rozdelenie aliasov (napr. "video editing,editing,strih videa")
+      const targetAliases = filter.toLowerCase().split(',').map(s => s.trim());
+
+      cards.forEach(card => {
+        const rawSkillsAttr = card.getAttribute('data-skills') || '';
+        const cardSkills = rawSkillsAttr.toLowerCase().split('|').map(s => s.trim());
+
+        if (targetAliases.includes('all')) {
+          card.classList.remove('hidden');
+        } else {
+          // Ak má karta aspoň jeden zo zhodných aliasov, zobrazíme ju
+          const hasMatch = cardSkills.some(s => targetAliases.includes(s));
+          if (hasMatch) {
+            card.classList.remove('hidden');
+          } else {
+            card.classList.add('hidden');
+          }
+        }
+      });
     }
 
-    cards.forEach(card => {
-      const skills = (card.getAttribute('data-skills') || '').toLowerCase().split('|');
-      if (filter.toLowerCase() === 'all' || skills.includes(filter.toLowerCase())) {
-        card.classList.remove('hidden');
-      } else {
-        card.classList.add('hidden');
-      }
+    buttons.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const filter = btn.getAttribute('data-filter') || 'all';
+        applyFilter(filter);
+      });
     });
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const targetSkill = urlParams.get('skill') || urlParams.get('filter');
+
+    if (targetSkill) {
+      applyFilter(targetSkill);
+      setTimeout(() => {
+        document.getElementById('projects-grid')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 150);
+    }
   }
 
-  buttons.forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.preventDefault();
-      const filter = btn.getAttribute('data-filter') || 'all';
-      applyFilter(filter);
-    });
-  });
-
-  const urlParams = new URLSearchParams(window.location.search);
-  const targetSkill = urlParams.get('skill') || urlParams.get('filter');
-
-  if (targetSkill) {
-    applyFilter(targetSkill);
-    setTimeout(() => {
-      document.getElementById('projects-grid')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 150);
-  }
+  // Podpora pre Astro ViewTransitions aj klasický load
+  setupProjectsFilter();
+  document.addEventListener('astro:page-load', setupProjectsFilter);
 </script>
