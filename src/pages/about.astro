@@ -31,80 +31,105 @@ const sortedSkills = Object.values(skillMap).sort((a, b) => {
 ---
 
 <Layout title="About & Contact | Bogdan Perederii">
-  <div class="max-w-4xl mx-auto px-4 py-12">
+  <div class="max-w-5xl mx-auto px-4 py-12">
     <!-- Top Breadcrumb -->
     <a href={`${base}/`} class="text-xs font-mono text-neutral-500 hover:text-amber-400 mb-8 inline-block">
       <span class="lang-en">← Back to Portfolio</span>
       <span class="lang-sk hidden">← Späť na portfólio</span>
     </a>
 
-    <!-- 1. BIO HERO -->
+    <!-- 1. BIO HERO S PORTRÉTOM NAĽAVO -->
     <section class="mb-14 border-b border-neutral-850 pb-12">
-      <div class="flex flex-wrap gap-2 mb-4">
-        <span class="px-2.5 py-0.5 text-xs font-mono rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 font-bold">
-          <span class="lang-en">Filmmaker & AV Technician</span>
-          <span class="lang-sk hidden">Filmár & AV Technik</span>
-        </span>
-        <span class="px-2.5 py-0.5 text-xs font-mono rounded bg-neutral-900 border border-neutral-800 text-neutral-400">
-          Trnava / Košice
-        </span>
-      </div>
-
-      <h1 class="text-4xl md:text-6xl font-black tracking-tight mb-6">
-        Bogdan Perederii
-      </h1>
-
-      <!-- Bio Text -->
-      <div class="space-y-4 text-base md:text-lg text-neutral-300 leading-relaxed max-w-3xl">
-        <!-- English Bio -->
-        <div class="lang-en space-y-4">
-          <p>
-            Hi, I'm Bogdan. I am a filmmaker, videographer, and location sound mixer based in <strong>Trnava</strong>, originally from <strong>Košice</strong>.
-          </p>
-          <p class="text-neutral-400 text-base">
-            I graduated from the Film Secondary School of Applied Arts in Košice (majoring in Camera, Sound, and Editing) and I am currently continuing my university studies at the Faculty of Mass Media Communication (FMK UCM) in Trnava.
-          </p>
-          <p class="text-neutral-400 text-base">
-            My work centers on cinematography, dynamic post-production editing, on-set sound recording, and tactile stop-motion animation. I am based in western Slovakia with strong ties to the east, and I am <strong>fully equipped and ready to travel for film, broadcast, and commercial productions nationwide</strong>. For me, it is essential that every frame conveys authentic atmosphere and raw emotion to the audience.
-          </p>
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-12 items-start">
+        
+        <!-- ĽAVÝ STĹPEC: Portrét (5 z 12 stĺpcov na desktope) -->
+        <div class="md:col-span-5 lg:col-span-5">
+          <div class="sticky top-24">
+            <div class="relative rounded-2xl overflow-hidden border border-neutral-800 bg-neutral-900/50 shadow-2xl group">
+              <!-- Súbor nahraj do: public/images/portrait.jpg -->
+              <img 
+                src={`${base}/images/portrait.jpg`} 
+                alt="Bogdan Perederii - Filmmaker & AV Technician" 
+                class="w-full aspect-[4/5] object-cover object-center grayscale contrast-105 hover:grayscale-0 transition-all duration-500"
+                loading="eager"
+              />
+              <div class="absolute bottom-3 left-3 bg-neutral-950/80 backdrop-blur-md px-3 py-1 rounded-full border border-neutral-800 text-[10px] font-mono text-neutral-300">
+                Trnava / Košice
+              </div>
+            </div>
+          </div>
         </div>
 
-        <!-- Slovak Bio -->
-        <div class="lang-sk hidden space-y-4">
-          <p>
-            Ahoj, volám sa Bogdan. Som filmár, kameraman a lokačný zvukár pôsobiaci v <strong>Trnave</strong>.
-          </p>
-          <p class="text-neutral-400 text-base">
-            Som absolventom SŠUP filmovej v Košiciach na odbore kamera, zvuk, strih a momentálne pokračujem v štúdiu na Fakulte masmediálnej komunikácie (FMK UCM) v Trnave.
-          </p>
-          <p class="text-neutral-400 text-base">
-            Zaoberám sa predovšetkým kamerou, dynamickým strihom, záznamom zvuku na pľaci a tvorbou stop-motion animácií. Pôsobím na západnom Slovensku s pravidelným zázemím na východe a som <strong>plne pripravený cestovať za produkciou po celom Slovensku</strong>. V tvorbe je pre mňa kľúčové, aby každý záber prenášal na diváka skutočné emócie, atmosféru a silný zážitok.
-          </p>
+        <!-- PRAVÝ STĹPEC: Bio, Nadpis a Tlačidlá (7 z 12 stĺpcov na desktope) -->
+        <div class="md:col-span-7 lg:col-span-7">
+          <div class="flex flex-wrap gap-2 mb-4">
+            <span class="px-2.5 py-0.5 text-xs font-mono rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 font-bold">
+              <span class="lang-en">Filmmaker & AV Technician</span>
+              <span class="lang-sk hidden">Filmár & AV Technik</span>
+            </span>
+            <span class="px-2.5 py-0.5 text-xs font-mono rounded bg-neutral-900 border border-neutral-800 text-neutral-400">
+              Trnava / Košice
+            </span>
+          </div>
+
+          <h1 class="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight mb-6 text-white">
+            Bogdan Perederii
+          </h1>
+
+          <!-- Bio Text -->
+          <div class="space-y-4 text-base text-neutral-300 leading-relaxed">
+            <!-- English Bio -->
+            <div class="lang-en space-y-4">
+              <p>
+                Hi, I'm Bogdan. I am a filmmaker, videographer, and location sound mixer based in <strong>Trnava</strong>, originally from <strong>Košice</strong>.
+              </p>
+              <p class="text-neutral-400">
+                I graduated from the Film Secondary School of Applied Arts in Košice (majoring in Camera, Sound, and Editing) and I am currently continuing my university studies at the Faculty of Mass Media Communication (FMK UCM) in Trnava.
+              </p>
+              <p class="text-neutral-400">
+                My work centers on cinematography, dynamic post-production editing, on-set sound recording, and tactile stop-motion animation. I am based in western Slovakia with strong ties to the east, and I am <strong>fully equipped and ready to travel for film, broadcast, and commercial productions nationwide</strong>. For me, it is essential that every frame conveys authentic atmosphere and raw emotion to the audience.
+              </p>
+            </div>
+
+            <!-- Slovak Bio -->
+            <div class="lang-sk hidden space-y-4">
+              <p>
+                Ahoj, volám sa Bogdan. Som filmár, kameraman a lokačný zvukár pôsobiaci v <strong>Trnave</strong>, pôvodom z <strong>Košíc</strong>.
+              </p>
+              <p class="text-neutral-400">
+                Som absolventom SŠUP filmovej v Košiciach na odbore kamera, zvuk, strih a momentálne pokračujem v štúdiu na Fakulte masmediálnej komunikácie (FMK UCM) v Trnave.
+              </p>
+              <p class="text-neutral-400">
+                Zaoberám sa predovšetkým kamerou, dynamickým strihom, záznamom zvuku na pľaci a tvorbou stop-motion animácií. Pôsobím na západnom Slovensku s pravidelným zázemím na východe a som <strong>plne pripravený cestovať za produkciou po celom Slovensku</strong>. V tvorbe je pre mňa kľúčové, aby každý záber prenášal na diváka skutočné emócie, atmosféru a silný zážitok.
+              </p>
+            </div>
+          </div>
+
+          <!-- CV Download & Preview Buttons -->
+          <div class="mt-8 flex flex-wrap items-center gap-4">
+            <a 
+              href={`${base}/cv.pdf`} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              class="px-5 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-mono font-bold text-xs tracking-wider transition-all flex items-center gap-2 shadow-lg hover:shadow-amber-500/20"
+            >
+              <span>📄</span>
+              <span class="lang-en">View CV (PDF) ↗</span>
+              <span class="lang-sk hidden">Náhľad životopisu (PDF) ↗</span>
+            </a>
+
+            <a 
+              href={`${base}/cv.pdf`} 
+              download="CV_Bogdan_Perederii.pdf"
+              class="px-5 py-3 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-neutral-300 hover:text-white border border-neutral-800 font-mono text-xs transition-colors flex items-center gap-2"
+            >
+              <span>⬇</span>
+              <span class="lang-en">Download CV</span>
+              <span class="lang-sk hidden">Stiahnuť životopis</span>
+            </a>
+          </div>
         </div>
-      </div>
 
-      <!-- CV Download & Preview Buttons (Presmerované na /portfolio/cv.pdf) -->
-      <div class="mt-8 flex flex-wrap items-center gap-4">
-        <a 
-          href={`${base}/cv.pdf`} 
-          target="_blank" 
-          rel="noopener noreferrer"
-          class="px-5 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-mono font-bold text-xs tracking-wider transition-all flex items-center gap-2 shadow-lg hover:shadow-amber-500/20"
-        >
-          <span>📄</span>
-          <span class="lang-en">View CV (PDF) ↗</span>
-          <span class="lang-sk hidden">Náhľad životopisu (PDF) ↗</span>
-        </a>
-
-        <a 
-          href={`${base}/cv.pdf`} 
-          download="CV_Bogdan_Perederii.pdf"
-          class="px-5 py-3 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-neutral-300 hover:text-white border border-neutral-800 font-mono text-xs transition-colors flex items-center gap-2"
-        >
-          <span>⬇</span>
-          <span class="lang-en">Download CV</span>
-          <span class="lang-sk hidden">Stiahnuť životopis</span>
-        </a>
       </div>
     </section>
 
@@ -247,7 +272,7 @@ const sortedSkills = Object.values(skillMap).sort((a, b) => {
         </div>
       </div>
 
-      <!-- Interactive Skill Pills Grid (Odkazuje na /portfolio/?skill=...) -->
+      <!-- Interactive Skill Pills Grid -->
       <div class="flex flex-wrap gap-2.5">
         {sortedSkills.map((item) => (
           <a 
@@ -278,10 +303,6 @@ const sortedSkills = Object.values(skillMap).sort((a, b) => {
           <span class="lang-en">Let's build something great!</span>
           <span class="lang-sk hidden">Poďme vytvoriť niečo skvelé!</span>
         </h2>
-        <p class="text-neutral-400 text-sm mb-6 leading-relaxed">
-          <span class="lang-en"></span>
-          <span class="lang-sk hidden"></span>
-        </p>
 
         <!-- Contact Grid -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 font-mono text-xs mb-6">
