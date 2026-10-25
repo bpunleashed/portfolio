@@ -1,11 +1,9 @@
 Na laptope zapneš server:
-Vo VS Code termináli: npm run dev 
 
- otvoríš http://localhost:4321/new (alebo klikneš dole v pätičke na ⚙ Studio).
-Vyplníš projekt a uložíš:
+npm run dev 
+ otvoríš http://localhost:4321 (alebo klikneš dole v pätičke na ⚙ Studio).
 Zadáš názov, tagy, link na video/fotky 
  klikneš Save.
-Pošleš to naživo do sveta:
 V termináli zadáš tri príkazy:
 
 git add .

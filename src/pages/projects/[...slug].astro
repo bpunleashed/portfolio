@@ -213,35 +213,75 @@ const order: string[] = d.blockOrder || ['hero', 'story', 'awards', 'teaser', 'g
       const hasBts = Boolean((d.gearList && d.gearList.length > 0) || (d.bts && d.bts.length > 0));
       if (blockName === 'bts' && hasBts) {
         return (
-          <section class="border-b border-neutral-800 pb-6 mb-6">
-            <h2 class="text-xs font-mono uppercase tracking-widest text-neutral-500 mb-4"><span class="lang-en">Behind The Scenes & Tech Breakdown</span><span class="lang-sk hidden">Zákulisie & Technické vybavenie</span></h2>
+          <section class="border-b border-neutral-800 pb-8 mb-8">
+            <h2 class="text-xs font-mono uppercase tracking-widest text-neutral-500 mb-4">
+              <span class="lang-en">Behind The Scenes & Tech Breakdown</span>
+              <span class="lang-sk hidden">Zákulisie & Technické vybavenie</span>
+            </h2>
             
+            {/* 1. Použitá technika (Gear List) */}
             {d.gearList && d.gearList.length > 0 && (
-              <div class="mb-5 p-4 rounded-xl border border-neutral-800 bg-neutral-900/30">
-                <h3 class="text-xs font-mono uppercase tracking-widest text-amber-500 mb-2 flex items-center gap-2"><span>⚙️</span><span class="lang-en">Production Gear Package</span><span class="lang-sk hidden">Použitá technika</span></h3>
+              <div class="mb-6 p-4 rounded-xl border border-neutral-800 bg-neutral-900/30">
+                <h3 class="text-xs font-mono uppercase tracking-widest text-amber-500 mb-2.5 flex items-center gap-2 font-bold">
+                  <span>⚙️</span>
+                  <span class="lang-en">Production Gear Package</span>
+                  <span class="lang-sk hidden">Použitá technika</span>
+                </h3>
                 <div class="flex flex-wrap gap-2">
-                  {d.gearList.map((g: string) => <span class="px-2.5 py-1 text-xs font-mono bg-neutral-900 border border-neutral-800 text-neutral-300 rounded-md">{g}</span>)}
+                  {d.gearList.map((g: string) => (
+                    <span class="px-2.5 py-1 text-xs font-mono bg-neutral-900 border border-neutral-800 text-neutral-300 rounded-md">
+                      {g}
+                    </span>
+                  ))}
                 </div>
               </div>
             )}
 
+            {/* 2. BTS Fotografie (Podpora čistých linkov aj objektov s popisom) */}
             {d.bts && d.bts.length > 0 && (
               <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                {d.bts.map((item: any) => (
-                  <div class="border border-neutral-800 rounded-xl overflow-hidden bg-neutral-900/40">
-                    <div class="aspect-video overflow-hidden bg-neutral-900">
-                      <img src={item.media} alt="BTS" class="w-full h-full object-cover" loading="lazy" />
-                    </div>
-                    <div class="p-3.5 space-y-1.5">
-                      <p class="text-xs text-neutral-300 leading-snug"><span class="lang-en">{item.note_en}</span><span class="lang-sk hidden">{item.note_sk}</span></p>
-                      {item.gear && (
-                        <div class="pt-1.5 border-t border-neutral-800 flex items-center gap-1.5 text-[11px] font-mono text-neutral-400">
-                          <span class="text-amber-500 font-bold">⚙️ Gear:</span><span>{item.gear}</span>
+                {d.bts.map((item: any) => {
+                  // Bezpečné vytiahnutie URL (či už je to string alebo objekt { media: ... })
+                  const mediaUrl = typeof item === 'string' ? item.trim() : (item.media || item.url || '').trim();
+                  if (!mediaUrl) return null;
+
+                  const noteEn = typeof item === 'object' ? (item.note_en || item.note || '').trim() : '';
+                  const noteSk = typeof item === 'object' ? (item.note_sk || item.note || '').trim() : '';
+                  const gear = typeof item === 'object' ? (item.gear || '').trim() : '';
+                  const hasDetails = Boolean(noteEn || noteSk || gear);
+
+                  return (
+                    <div class="border border-neutral-800 rounded-xl overflow-hidden bg-neutral-900/40 group hover:border-neutral-700 transition-colors">
+                      <!-- Fotka -->
+                      <div class="aspect-video overflow-hidden bg-neutral-950">
+                        <img 
+                          src={mediaUrl} 
+                          alt="Behind The Scenes" 
+                          class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                          loading="lazy" 
+                        />
+                      </div>
+
+                      <!-- Popis a výbava (Vykreslí sa IBA ak reálne existujú!) -->
+                      {hasDetails && (
+                        <div class="p-3.5 space-y-2 border-t border-neutral-800/80 bg-neutral-900/60">
+                          {(noteEn || noteSk) && (
+                            <p class="text-xs text-neutral-300 leading-snug">
+                              {noteEn && <span class="lang-en">{noteEn}</span>}
+                              {noteSk && <span class={`lang-sk ${noteEn ? 'hidden' : ''}`}>{noteSk}</span>}
+                            </p>
+                          )}
+                          {gear && (
+                            <div class="pt-1.5 border-t border-neutral-800/60 flex items-center gap-1.5 text-[11px] font-mono text-neutral-400">
+                              <span class="text-amber-500 font-bold">⚙️ Gear:</span>
+                              <span class="text-neutral-300">{gear}</span>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </section>
