@@ -397,34 +397,78 @@ import Layout from '../layouts/Layout.astro';
   </div>
 </Layout>
 
-<script>
-import { parseSmartText } from '../utils/smartImporter.ts';
+<script is:inline>
+  // 1. SMART TEXT PARSER (Priamo v skripte, bez problémových importov)
+  function slugifyText(text) {
+    return text.toString().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim().replace(/[^a-z0-9\s-]/g, '').replace(/[\s_-]+/g, '-').replace(/^-+|-+$/g, '');
+  }
 
+  function parseSmartText(raw) {
+    if (!raw || !raw.trim()) return {};
+    const cleanRaw = raw.replace(/^---\s*[\r\n]+/, '').replace(/[\r\n]+---\s*$/, '');
+    const lines = cleanRaw.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+    const result = { title_en: '', title_sk: '', slug: '', date: '', client: '', skills: '', collaborators: '', place: '', venue: '' };
+
+    const unassigned = [];
+    for (const line of lines) {
+      if (!result.date && /^((19|20)\d{2})(\s*[-–]\s*(19|20)\d{2})?$/.test(line)) {
+        result.date = line; continue;
+      }
+      if (/(autor|dramaturgia|obsadenie|hrajú|réžia|kamera|zvuk|strih|cast):/i.test(line)) {
+        result.collaborators = result.collaborators ? `${result.collaborators}, ${line}` : line; continue;
+      }
+      if (!result.client && /(divadlo|theatre|studio|galéria|kunsthalle|s\.r\.o\.|kft\.|tv\b|aliancia)/i.test(line)) {
+        result.client = line; continue;
+      }
+      unassigned.push(line);
+    }
+
+    const hasDiacritics = (str) => /[áäčďéíĺľňóôŕšťúýž]/i.test(str);
+    const hasEnWords = (str) => /\b(the|of|in|and|man|green|adventures|short|film|night)\b/i.test(str);
+
+    if (unassigned.length === 1) {
+      result.title_sk = unassigned[0];
+      result.title_en = unassigned[0];
+    } else if (unassigned.length >= 2) {
+      if (hasDiacritics(unassigned[0]) || hasEnWords(unassigned[1])) {
+        result.title_sk = unassigned[0]; result.title_en = unassigned[1];
+      } else if (hasDiacritics(unassigned[1]) || hasEnWords(unassigned[0])) {
+        result.title_sk = unassigned[1]; result.title_en = unassigned[0];
+      } else {
+        result.title_sk = unassigned[0]; result.title_en = unassigned[1];
+      }
+    }
+
+    const mainTitle = result.title_sk || result.title_en;
+    if (mainTitle) result.slug = slugifyText(mainTitle);
+    if (!result.skills && /divadlo/i.test(cleanRaw)) result.skills = 'Záznam predstavenia, Kamera, Strih videa';
+
+    return result;
+  }
+
+  // 2. DOM ELEMENTY
   const container = document.getElementById('reorderable-sections');
-  const searchInput = document.getElementById('project-search') as HTMLInputElement | null;
+  const searchInput = document.getElementById('project-search');
   const searchResults = document.getElementById('search-results');
   const btnNewProject = document.getElementById('btn-new-project');
   const modeDot = document.getElementById('mode-dot');
   const modeText = document.getElementById('mode-text');
-  const previewLink = document.getElementById('preview-link') as HTMLAnchorElement | null;
-  const editingSlugInput = document.getElementById('editing-slug') as HTMLInputElement | null;
-  const submitBtn = document.getElementById('submit-btn') as HTMLButtonElement | null;
+  const previewLink = document.getElementById('preview-link');
+  const editingSlugInput = document.getElementById('editing-slug');
+  const submitBtn = document.getElementById('submit-btn');
   const statusMsg = document.getElementById('status-msg');
   const awardsList = document.getElementById('awards-list');
   const btnAddAward = document.getElementById('btn-add-award');
-  const form = document.getElementById('project-form') as HTMLFormElement | null;
+  const projectForm = document.getElementById('project-form');
 
-  // NOVÁ INTELIGENTNÁ AUTO-FILL FUNKCIA
-  function parseTextAndFill(raw: string) {
+  // AUTO-FILL LOGIKA
+  function parseTextAndFill(raw) {
     if (!raw || !raw.trim()) return;
-
     const data = parseSmartText(raw);
 
-    const setVal = (id: string, val: any) => {
-      const el = document.getElementById(id) as HTMLInputElement | HTMLTextAreaElement | null;
-      if (el && val !== undefined && val !== null && String(val).trim()) {
-        el.value = String(val).trim();
-      }
+    const setVal = (id, val) => {
+      const el = document.getElementById(id);
+      if (el && val) el.value = String(val).trim();
     };
 
     setVal('title_en', data.title_en);
@@ -434,8 +478,6 @@ import { parseSmartText } from '../utils/smartImporter.ts';
     setVal('client', data.client);
     setVal('collaborators', data.collaborators);
     setVal('skills', data.skills);
-    setVal('place', data.place);
-    setVal('venue', data.venue);
 
     const importStatus = document.getElementById('import-status');
     if (importStatus) {
@@ -443,47 +485,94 @@ import { parseSmartText } from '../utils/smartImporter.ts';
       importStatus.className = 'text-xs font-mono text-green-400 mt-3 block';
       importStatus.innerText = `✓ Rozpoznané: "${data.title_sk || data.title_en}" (${data.date || 'Bez dátumu'})`;
     }
-
-    setTimeout(() => form?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 150);
   }
 
-  // Drag & Drop a File Listeners
-  document.getElementById('btn-browse-trigger')?.addEventListener('click', () => {
-    document.getElementById('txt-file-input')?.click();
-  });
-
-  document.getElementById('txt-file-input')?.addEventListener('change', (e: any) => {
+  // Listeners pre súbory a paste
+  document.getElementById('btn-browse-trigger')?.addEventListener('click', () => document.getElementById('txt-file-input')?.click());
+  document.getElementById('txt-file-input')?.addEventListener('change', (e) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onload = (evt) => parseTextAndFill(evt.target?.result as string);
+      reader.onload = (evt) => parseTextAndFill(evt.target.result);
       reader.readAsText(file);
     }
   });
 
   document.getElementById('btn-toggle-paste')?.addEventListener('click', () => {
-    const pasteBox = document.getElementById('paste-box');
-    pasteBox?.classList.toggle('hidden');
-    if (!pasteBox?.classList.contains('hidden')) (document.getElementById('raw-paste-input') as HTMLTextAreaElement)?.focus();
+    document.getElementById('paste-box')?.classList.toggle('hidden');
   });
-
   document.getElementById('btn-parse-pasted')?.addEventListener('click', () => {
-    parseTextAndFill((document.getElementById('raw-paste-input') as HTMLTextAreaElement)?.value || '');
+    parseTextAndFill(document.getElementById('raw-paste-input')?.value);
     document.getElementById('paste-box')?.classList.add('hidden');
   });
 
-  const txtDropZone = document.getElementById('txt-drop-zone');
-  txtDropZone?.addEventListener('dragover', (e) => { e.preventDefault(); txtDropZone.classList.add('border-amber-500', 'bg-amber-500/5'); });
-  txtDropZone?.addEventListener('dragleave', () => txtDropZone.classList.remove('border-amber-500', 'bg-amber-500/5'));
-  txtDropZone?.addEventListener('drop', (e) => {
-    e.preventDefault(); txtDropZone.classList.remove('border-amber-500', 'bg-amber-500/5');
-    const file = e.dataTransfer?.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (evt) => parseTextAndFill(evt.target?.result as string);
-      reader.readAsText(file);
+  // SUBMIT HANDLER - SO 100% BLOKOVANÍM RELOADU
+  projectForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!submitBtn) return;
+    submitBtn.disabled = true;
+    submitBtn.innerText = "Saving to disk...";
+    statusMsg.className = "text-neutral-400 animate-pulse text-xs mt-3 block";
+    statusMsg.innerText = "Writing changes to .mdx file...";
+
+    const targetSlug = editingSlugInput.value.trim() || document.getElementById('slug').value.trim() || slugifyText(document.getElementById('title_sk').value || document.getElementById('title_en').value);
+    const currentOrder = container ? Array.from(container.children).map(card => card.getAttribute('data-block-id')).filter(Boolean) : [];
+
+    const payload = {
+      title_en: document.getElementById('title_en').value,
+      title_sk: document.getElementById('title_sk').value,
+      slug: targetSlug,
+      date: document.getElementById('date').value,
+      duration: document.getElementById('duration').value,
+      place: document.getElementById('place').value,
+      venue: document.getElementById('venue').value,
+      client: document.getElementById('client').value,
+      skills: document.getElementById('skills').value,
+      collaborators: document.getElementById('collaborators').value,
+      tagline_en: document.getElementById('tagline_en').value,
+      tagline_sk: document.getElementById('tagline_sk').value,
+      story_en: document.getElementById('story_en').value,
+      story_sk: document.getElementById('story_sk').value,
+      coverImage: document.getElementById('coverImage').value,
+      heroType: document.getElementById('heroType').value,
+      heroUrl: document.getElementById('heroUrl').value,
+      heroUrl2: document.getElementById('heroUrl2')?.value || '',
+      heroLayout: document.getElementById('heroLayout')?.value || 'grid',
+      teaserTitle_en: document.getElementById('teaserTitle_en').value,
+      teaserTitle_sk: document.getElementById('teaserTitle_sk').value,
+      teaserUrl: document.getElementById('teaserUrl').value,
+      gearList: document.getElementById('gearList').value,
+      btsText: document.getElementById('btsText').value,
+      galleryText: document.getElementById('galleryText').value,
+      awards: typeof getAwardsData === 'function' ? getAwardsData() : [],
+      blockOrder: currentOrder,
+    };
+
+    try {
+      const res = await fetch(`${projectForm.dataset.base}/api/create-project`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const text = await res.text();
+      let result;
+      try { result = JSON.parse(text); } catch (jsonErr) { throw new Error(`Server error (${res.status}): ${text || 'Empty response'}`); }
+
+      if (result.success) {
+        statusMsg.className = "text-green-400 font-medium text-xs mt-3 block";
+        statusMsg.innerText = `✓ Projekt ${result.slug}.mdx bol úspešne vytvorený na disku!`;
+        submitBtn.disabled = false;
+        submitBtn.innerText = `💾 Update & Save ${result.slug}.mdx`;
+      } else {
+        throw new Error(result.error);
+      }
+    } catch (err) {
+      statusMsg.className = "text-red-500 font-medium text-xs mt-3 block";
+      statusMsg.innerText = `Error: ${err.message}`;
+      submitBtn.disabled = false;
+      submitBtn.innerText = "⚡ Try Saving Again";
     }
   });
-
-  // (Zvyšok tvojho pôvodného kódu pre načítanie projektov, template selector a submit zostáva identický...)
 </script>
