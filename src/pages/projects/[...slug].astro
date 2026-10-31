@@ -145,26 +145,56 @@ const order: string[] = d.blockOrder || ['hero', 'story', 'awards', 'teaser', 'g
       if (blockName === 'awards' && d.awards && d.awards.length > 0) {
         return (
           <section class="border-b border-neutral-800 pb-6 mb-6">
-            <h2 class="text-xs font-mono uppercase tracking-widest text-amber-500 mb-4"><span class="lang-en">Awards & Festival Selections</span><span class="lang-sk hidden">Ocenenia a festivalové výbery</span></h2>
+            <h2 class="text-xs font-mono uppercase tracking-widest text-amber-500 mb-4">
+              <span class="lang-en">Awards & Festival Selections</span>
+              <span class="lang-sk hidden">Ocenenia a festivalové výbery</span>
+            </h2>
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5 items-start">
               {d.awards.map((a: any) => {
                 const textToCheck = `${a.award_en || ''} ${a.award_sk || ''} ${a.award || ''}`.toLowerCase();
                 const isPrize = textToCheck.includes('award') || textToCheck.includes('place') || textToCheck.includes('cena') || textToCheck.includes('miesto') || textToCheck.includes('winner') || textToCheck.includes('víťaz');
+                
+                // Detekcia: Je to obrázok alebo externý webový odkaz?
+                const isDirectImage = a.laurelImage && /\.(png|jpe?g|webp|svg)(\?.*)?$/i.test(a.laurelImage);
+                const hasLink = Boolean(a.laurelImage && a.laurelImage.trim() !== '');
+
                 return (
                   <div class="p-4 rounded-xl border border-neutral-800 bg-neutral-900/40 hover:border-neutral-700 transition-all flex flex-col justify-between h-full">
                     <div class="text-center">
                       <span class="text-2xl mb-1.5 inline-block">{isPrize ? '🏆' : '🌿'}</span>
                       <span class="text-[10px] font-mono uppercase tracking-wider text-amber-400 font-bold block mb-1">
-                        <span class="lang-en">{a.award_en || a.award}</span><span class="lang-sk hidden">{a.award_sk || a.award}</span>
+                        <span class="lang-en">{a.award_en || a.award}</span>
+                        <span class="lang-sk hidden">{a.award_sk || a.award}</span>
                       </span>
                       <h4 class="text-xs font-bold text-neutral-100 leading-snug">{a.festival}</h4>
                       <span class="text-xs font-mono text-neutral-500 mt-0.5 block">({a.year})</span>
                     </div>
-                    {a.laurelImage && (
-                      <div class="mt-3 pt-3 border-t border-neutral-800/80 flex items-center justify-center min-h-[100px]">
-                        <a href={a.laurelImage} target="_blank" rel="noopener noreferrer" class="group block" title="Open image">
-                          <img src={a.laurelImage} alt={`${a.festival} Laurel/Diploma`} class="max-h-24 w-auto max-w-full object-contain rounded filter drop-shadow group-hover:scale-105 transition-transform duration-300" loading="lazy" />
-                        </a>
+
+                    {hasLink && (
+                      <div class="mt-3 pt-3 border-t border-neutral-800/80 flex items-center justify-center">
+                        {isDirectImage ? (
+                          /* Skutočný obrázok laurelu / diplomu */
+                          <a href={a.laurelImage} target="_blank" rel="noopener noreferrer" class="group block" title="Zobraziť diplom">
+                            <img 
+                              src={a.laurelImage} 
+                              alt={a.festival} 
+                              class="max-h-24 w-auto max-w-full object-contain rounded filter drop-shadow group-hover:scale-105 transition-transform duration-300" 
+                              loading="lazy" 
+                            />
+                          </a>
+                        ) : (
+                          /* Webový link (ČSFD, SFÚ, tlačová správa) */
+                          <a 
+                            href={a.laurelImage} 
+                            target="_blank" 
+                            rel="noopener noreferrer" 
+                            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-neutral-950 border border-neutral-800 hover:border-amber-500/50 hover:text-amber-400 text-[11px] font-mono text-neutral-300 transition-all"
+                          >
+                            <span>🔗</span>
+                            <span class="lang-en">Open Entry ↗</span>
+                            <span class="lang-sk hidden">Otvoriť záznam ↗</span>
+                          </a>
+                        )}
                       </div>
                     )}
                   </div>
