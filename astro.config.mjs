@@ -104,7 +104,7 @@ const isProd = process.env.NODE_ENV === 'production';
 
 export default defineConfig({
   site: 'https://bogdanperederii.github.io',
-base: '/portfolio',
+  base: '/',  // <-- ZMEŇ z '/portfolio' na '/'
   build: {
     assets: 'assets'
   },
