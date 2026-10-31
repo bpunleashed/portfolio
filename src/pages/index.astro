@@ -42,23 +42,96 @@ const projects: any[] = rawProjects.sort((a, b) => {
 
 // 2. Prekladový slovník zlučujúci duplicity do jedného filtra
 const skillTranslations: Record<string, { en: string; sk: string; aliases: string[] }> = {
-  'camera': { en: 'Camera (DP)', sk: 'Kamera', aliases: ['camera (dp)', 'camera', 'video recording'] },
-  'directing': { en: 'Directing', sk: 'Réžia', aliases: ['directing', 'réžia', 'rezia'] },
-  'video-editing': { en: 'Video Editing', sk: 'Strih videa', aliases: ['video editing', 'editing', 'strih videa', 'strih'] },
-  'location-sound': { en: 'Location Sound', sk: 'Lokačný zvuk', aliases: ['location sound'] },
-  'sound-design': { en: 'Sound Design', sk: 'Zvukový dizajn', aliases: ['sound design', 'sound engineering', 'zvukový dizajn'] },
-  'photography': { en: 'Photography', sk: 'Fotografia', aliases: ['photography'] },
-  'photo-editing': { en: 'Photo Editing', sk: 'Úprava fotiek', aliases: ['photo editing'] },
-  'stop-motion': { en: 'Stop-Motion', sk: 'Stop-motion', aliases: ['stop-motion', 'stop motion'] },
-  'prop-making': { en: 'Prop Making', sk: 'Výroba rekvizít', aliases: ['prop making'] },
-  'woodworking': { en: 'Woodworking', sk: 'Práca s drevom', aliases: ['woodworking', 'woodwork'] },
-  'grip': { en: 'Grip', sk: 'Grip', aliases: ['grip'] },
-  'storyboarding': { en: 'Storyboarding', sk: 'Storyboarding', aliases: ['story boarding', 'storyboarding'] },
-  'event-management': { en: 'Event Management', sk: 'Event produkcia', aliases: ['event management'] },
-  'stage-presence': { en: 'Stage Presence', sk: 'Javisková tvorba', aliases: ['stage presence'] },
-  'painting': { en: 'Painting', sk: 'Maľba', aliases: ['painting'] },
-  'sewing': { en: 'Sewing', sk: 'Šitie / Kostýmy', aliases: ['sewing'] },
-  'craft-services': { en: 'Craft Services', sk: 'Servis na pľaci', aliases: ['craft services'] }
+  'camera': { 
+    en: 'Camera (DP)', 
+    sk: 'Kamera', 
+    aliases: ['camera (dp)', 'camera', 'video recording', 'kamera', 'dop'] 
+  },
+  'directing': { 
+    en: 'Directing', 
+    sk: 'Réžia', 
+    aliases: ['directing', 'réžia', 'rezia', 'director', 'directed', 'režisér'] 
+  },
+  'video-editing': { 
+    en: 'Video Editing', 
+    sk: 'Strih videa', 
+    aliases: ['video editing', 'editing', 'strih videa', 'strih', 'edit', 'editor'] 
+  },
+  'location-sound': { 
+    en: 'Location Sound', 
+    sk: 'Lokačný zvuk', 
+    aliases: ['location sound', 'sound', 'sound recording', 'zvuk', 'lokačný zvuk'] 
+  },
+  'sound-design': { 
+    en: 'Sound Design', 
+    sk: 'Zvukový dizajn', 
+    aliases: ['sound design', 'sound engineering', 'zvukový dizajn'] 
+  },
+  'preproduction': { 
+    en: 'Preproduction', 
+    sk: 'Predprodukcia', 
+    aliases: ['preproduction', 'pre-production', 'predprodukcia', 'príprava'] 
+  },
+  'photography': { 
+    en: 'Photography', 
+    sk: 'Fotografia', 
+    aliases: ['photography', 'foto', 'fotografia'] 
+  },
+  'photo-editing': { 
+    en: 'Photo Editing', 
+    sk: 'Úprava fotiek', 
+    aliases: ['photo editing', 'úprava fotiek', 'retuš'] 
+  },
+  'stop-motion': { 
+    en: 'Stop-Motion', 
+    sk: 'Stop-motion', 
+    aliases: ['stop-motion', 'stop motion', 'animácia'] 
+  },
+  'prop-making': { 
+    en: 'Prop Making', 
+    sk: 'Výroba rekvizít', 
+    aliases: ['prop making', 'výroba rekvizít', 'props'] 
+  },
+  'woodworking': { 
+    en: 'Woodworking', 
+    sk: 'Práca s drevom', 
+    aliases: ['woodworking', 'woodwork', 'práca s drevom', 'drevorezba'] 
+  },
+  'grip': { 
+    en: 'Grip', 
+    sk: 'Grip', 
+    aliases: ['grip', 'osvetľovač'] 
+  },
+  'storyboarding': { 
+    en: 'Storyboarding', 
+    sk: 'Storyboarding', 
+    aliases: ['story boarding', 'storyboarding', 'scenár'] 
+  },
+  'event-management': { 
+    en: 'Event Management', 
+    sk: 'Event produkcia', 
+    aliases: ['event management', 'event produkcia', 'produkcia'] 
+  },
+  'stage-presence': { 
+    en: 'Stage Presence', 
+    sk: 'Javisková tvorba', 
+    aliases: ['stage presence', 'divadlo', 'javisková tvorba'] 
+  },
+  'painting': { 
+    en: 'Painting', 
+    sk: 'Maľba', 
+    aliases: ['painting', 'maľba', 'výtvarné umenie'] 
+  },
+  'sewing': { 
+    en: 'Sewing / Costumes', 
+    sk: 'Šitie / Kostýmy', 
+    aliases: ['sewing', 'šitie', 'kostýmy'] 
+  },
+  'craft-services': { 
+    en: 'Craft Services', 
+    sk: 'Servis na pľaci', 
+    aliases: ['craft services', 'servis na pľaci', 'runner'] 
+  }
 };
 
 // 3. Extrakcia tagov, ktoré sa reálne v projektoch nachádzajú
