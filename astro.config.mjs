@@ -103,8 +103,8 @@ bts: ${btsArray.length > 0 ? '\n' + btsArray.map(b => `  - media: "${b.media}"\n
 const isProd = process.env.NODE_ENV === 'production';
 
 export default defineConfig({
-  site: 'https://bpunleashed.github.io',
-  base: isProd ? '/portfolio' : '/',
+  site: 'https://bogdanperederii.github.io',
+base: '/portfolio',
   build: {
     assets: 'assets'
   },
